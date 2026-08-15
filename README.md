@@ -69,6 +69,8 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 
 ## Installation
 
+### 🐧 Linux / Kali
+
 ```bash
 # Clone the repo
 git clone https://github.com/Yaman-RedTeam/darkcam
@@ -81,6 +83,20 @@ pip install -r requirements.txt
 curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
   -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
 ```
+
+### 📱 Termux (Android)
+
+```bash
+# Clone the repo
+pkg install git -y
+git clone https://github.com/Yaman-RedTeam/darkcam
+cd darkcam
+
+# One-click setup
+bash setup-termux.sh
+```
+
+> **Note:** On Termux, open the link in your phone's Chrome browser — camera access works best there.
 
 ---
 
