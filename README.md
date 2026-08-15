@@ -21,6 +21,12 @@
 
 ---
 
+## Preview
+
+![DarkCam Screenshot](assets/screenshot.png)
+
+---
+
 ## ⚠️ Legal Disclaimer
 
 > **DarkCam is strictly for authorized penetration testing, red team engagements, and educational/research purposes only.**
