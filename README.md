@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Kali-red?style=flat-square&logo=linux&logoColor=white)](https://kali.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=flat-square)]()
-[![Lure Pages](https://img.shields.io/badge/Lure%20Pages-8-darkred?style=flat-square)]()
+[![Lure Pages](https://img.shields.io/badge/Lure%20Pages-11-darkred?style=flat-square)]()
 [![Flask](https://img.shields.io/badge/Flask-Backend-lightgrey?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Cloudflare](https://img.shields.io/badge/Cloudflared-Tunnel-orange?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com)
 [![RedTeam](https://img.shields.io/badge/For-Red%20Team%20Only-cc0000?style=flat-square)]()
@@ -39,8 +39,9 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 ## Features
 
 ```
-  ✦  8 Realistic Lure Pages     →  Meet, Zoom, WhatsApp, Instagram,
-                                    Omegle, Teams, Telegram, FaceTime
+  ✦  11 Realistic Lure Pages    →  Meet, Zoom, WhatsApp, Instagram,
+                                    Omegle, Teams, Telegram, FaceTime,
+                                    Instagram Verify, Google Verify, Paytm KYC
   ✦  Live Video Capture         →  WebM format, 5s chunked upload
   ✦  IP + Geolocation Logging   →  City, Region, ISP, Country
   ✦  Auto Cloudflared Tunnel    →  Instant public HTTPS URL
@@ -54,6 +55,8 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 
 ## Lure Pages
 
+### 📹 Video Call Pages
+
 | # | Page | Flag | Details |
 |---|------|------|---------|
 | 1 | 📹 Google Meet | `meet` | Fake meeting join screen |
@@ -64,6 +67,14 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 | 6 | 🟣 Microsoft Teams | `teams` | Corporate meeting — fake Meeting ID & Passcode |
 | 7 | ✈️ Telegram | `telegram` | Incoming call with pulsing avatar animation |
 | 8 | 🍎 FaceTime | `facetime` | Full-screen iOS-style call + self-view PiP |
+
+### 🔐 Face Verification Pages
+
+| # | Page | Flag | Details |
+|---|------|------|---------|
+| 9 | 📸 Instagram Verify | `instagram_verify` | Unusual activity detected — face scan with oval frame |
+| 10 | 🔵 Google Verify | `google_verify` | New device login — identity confirm with progress bar |
+| 11 | 💙 Paytm KYC | `paytm_kyc` | Wallet limited — Full KYC face scan, Aadhaar match flow |
 
 ---
 
@@ -112,11 +123,20 @@ python3 darkcam.py --page whatsapp
 # FaceTime lure
 python3 darkcam.py --page facetime
 
-# Telegram on custom port
+# Instagram face verification lure
+python3 darkcam.py --page instagram_verify
+
+# Google account verification lure
+python3 darkcam.py --page google_verify
+
+# Paytm KYC lure (India)
+python3 darkcam.py --page paytm_kyc
+
+# Custom port
 python3 darkcam.py --page telegram --port 9090
 
 # All flags
-python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime]
+python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime|instagram_verify|google_verify|paytm_kyc]
                    --port [PORT]
                    --no-tunnel
 ```
