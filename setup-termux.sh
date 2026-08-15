@@ -23,6 +23,7 @@ echo -e "  ${O}[*]${R} Installing dependencies..."
 pkg install -y python git curl cloudflared 2>/dev/null || true
 
 echo -e "  ${O}[*]${R} Installing Python packages..."
+pip install flask colorama requests -q --break-system-packages 2>/dev/null || \
 pip install flask colorama requests -q
 
 echo -e "  ${O}[*]${R} Setting up storage permission..."

@@ -49,16 +49,25 @@ def install_deps():
     req_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
     print(f"  {_O}[*]{_R} Checking dependencies...")
     if IS_TERMUX:
-        # Termux mein --break-system-packages nahi chahiye
-        subprocess.run(
+        # Termux — no --break-system-packages needed
+        result = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-r", req_path, "-q"],
-            check=True
+            capture_output=True
         )
     else:
-        subprocess.run(
+        # Try with --break-system-packages first (Kali/Debian managed env)
+        result = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-r", req_path, "-q", "--break-system-packages"],
-            check=True
+            capture_output=True
         )
+        if result.returncode != 0:
+            # fallback without flag (older pip / venv)
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-r", req_path, "-q"],
+                capture_output=True
+            )
+    if result.returncode != 0:
+        print(f"  {_O}[!]{_R} Dep install warning: {result.stderr.decode()[:200]}")
 
 def check_cloudflared():
     result = subprocess.run(["which", "cloudflared"], capture_output=True)
