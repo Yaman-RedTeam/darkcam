@@ -52,7 +52,7 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
   ✦  Auto Chunk Merge           →  Single .webm output per session
   ✦  Multi-Victim Support       →  Each victim gets unique session ID
   ✦  Real-time Terminal Logs    →  Live victim info on connect
-  ✦  --all Mode                 →  Launch all 11 lures simultaneously
+  ✦  --all Mode                 →  Launch all 12 lures simultaneously
 ```
 
 ---
@@ -79,6 +79,12 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 | 9 | 📸 Instagram Verify | `instagram_verify` | Unusual activity detected — face scan with oval frame |
 | 10 | 🔵 Google Verify | `google_verify` | New device login — identity confirm with progress bar |
 | 11 | 💙 Paytm KYC | `paytm_kyc` | Wallet limited — Full KYC face scan, Aadhaar match flow |
+
+### 🤖 Social Engineering Pages
+
+| # | Page | Flag | Details |
+|---|------|------|---------|
+| 12 | ☁️ Cloudflare CAPTCHA | `captcha` | Fake Cloudflare Turnstile challenge — "I am not a robot" checkbox triggers camera |
 
 ---
 
@@ -139,14 +145,17 @@ python3 darkcam.py --page google_verify
 # Paytm KYC lure (India)
 python3 darkcam.py --page paytm_kyc
 
+# Cloudflare CAPTCHA lure (most deceptive — user thinks its bot check)
+python3 darkcam.py --page captcha
+
 # Custom port
 python3 darkcam.py --page telegram --port 9090
 
-# Launch ALL 11 lures simultaneously (11 tunnels in parallel)
+# Launch ALL 12 lures simultaneously (12 tunnels in parallel)
 python3 darkcam.py --all
 
 # All flags
-python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime|instagram_verify|google_verify|paytm_kyc]
+python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime|instagram_verify|google_verify|paytm_kyc|captcha]
                    --port [PORT]
                    --no-tunnel
                    --all
