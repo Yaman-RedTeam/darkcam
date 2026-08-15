@@ -97,6 +97,9 @@ pip install -r requirements.txt
 # Install cloudflared (auto-installs if missing, or manually)
 curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
   -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
+
+# Run
+python3 darkcam.py --page meet
 ```
 
 ### 📱 Termux (Android)
