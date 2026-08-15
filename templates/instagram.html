@@ -11,6 +11,7 @@
 
   .topbar { padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
   .back { font-size: 24px; color: #fff; }
+  .ig-icon { height: 26px; width: 26px; flex-shrink: 0; }
   .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; }
   .uname { flex: 1; font-size: 14px; font-weight: 600; }
   .more { font-size: 22px; color: #aaa; }
@@ -40,6 +41,20 @@
 <div class="container">
   <div class="topbar">
     <div class="back">←</div>
+    <svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132">
+      <defs>
+        <radialGradient id="ig1b" cx="19%" cy="99%" r="128%">
+          <stop offset="0" stop-color="#ffd676"/>
+          <stop offset=".25" stop-color="#f2a454"/>
+          <stop offset=".38" stop-color="#f05c3c"/>
+          <stop offset=".6" stop-color="#c22f86"/>
+          <stop offset=".83" stop-color="#6b36ab"/>
+          <stop offset="1" stop-color="#4d60d4"/>
+        </radialGradient>
+      </defs>
+      <rect width="132" height="132" rx="28" fill="url(#ig1b)"/>
+      <path d="M86 28H46a18 18 0 00-18 18v40a18 18 0 0018 18h40a18 18 0 0018-18V46a18 18 0 00-18-18zm-20 54a18 18 0 110-36 18 18 0 010 36zm21-32a4 4 0 110-8 4 4 0 010 8z" fill="#fff"/>
+    </svg>
     <div class="avatar">R</div>
     <div class="uname">rahul_s99</div>
     <div class="more">⋮</div>

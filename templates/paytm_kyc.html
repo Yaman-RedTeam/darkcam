@@ -10,6 +10,7 @@
 
   .topbar { background: #00b9f1; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
   .back { font-size: 22px; color: #fff; }
+  .topbar-logo { height: 28px; }
   .topbar-title { font-size: 17px; font-weight: 700; color: #fff; }
 
   .content { background: #f5f5f5; min-height: calc(100vh - 52px); border-radius: 20px 20px 0 0; padding: 20px 16px; }
@@ -57,12 +58,19 @@
 <body>
 <div class="topbar">
   <div class="back">←</div>
-  <div class="topbar-title">Complete KYC</div>
+  <svg class="topbar-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+    <text x="0" y="45" font-family="Arial Black,Arial,sans-serif" font-size="48" font-weight="900" fill="#fff">Paytm</text>
+  </svg>
 </div>
 
 <div class="content">
   <div class="kyc-badge">
-    <div class="badge-icon">🔵</div>
+    <div class="badge-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="40" height="40">
+        <circle cx="30" cy="30" r="30" fill="#00b9f1"/>
+        <text x="30" y="42" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="22" font-weight="900" fill="#fff">P</text>
+      </svg>
+    </div>
     <div>
       <div class="badge-title">Paytm KYC Verification</div>
       <div class="badge-sub">Complete Full KYC to unlock all features</div>

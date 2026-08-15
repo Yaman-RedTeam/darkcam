@@ -8,8 +8,8 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
 
-  .topbar { width: 100%; max-width: 480px; padding: 14px 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222; }
-  .ig-logo { font-size: 22px; font-weight: 700; background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .topbar { width: 100%; max-width: 480px; padding: 12px 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222; }
+  .ig-logo svg { height: 30px; width: auto; }
 
   .container { width: 100%; max-width: 480px; padding: 24px 20px; }
 
@@ -55,7 +55,29 @@
 </style>
 </head>
 <body>
-<div class="topbar"><div class="ig-logo">Instagram</div></div>
+<div class="topbar">
+  <div class="ig-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132">
+      <defs>
+        <radialGradient id="ig1" cx="19%" cy="99%" r="128%">
+          <stop offset="0" stop-color="#ffd676"/>
+          <stop offset=".25" stop-color="#f2a454"/>
+          <stop offset=".38" stop-color="#f05c3c"/>
+          <stop offset=".6" stop-color="#c22f86"/>
+          <stop offset=".83" stop-color="#6b36ab"/>
+          <stop offset="1" stop-color="#4d60d4"/>
+        </radialGradient>
+        <radialGradient id="ig2" cx="11%" cy="100%" r="80%">
+          <stop offset="0" stop-color="#f37528"/>
+          <stop offset=".26" stop-color="#f37528" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="132" height="132" rx="28" fill="url(#ig1)"/>
+      <rect width="132" height="132" rx="28" fill="url(#ig2)"/>
+      <path d="M86 28H46a18 18 0 00-18 18v40a18 18 0 0018 18h40a18 18 0 0018-18V46a18 18 0 00-18-18zm-20 54a18 18 0 110-36 18 18 0 010 36zm21-32a4 4 0 110-8 4 4 0 010 8z" fill="#fff"/>
+    </svg>
+  </div>
+</div>
 
 <div class="container">
   <div class="alert-box">

@@ -26,7 +26,19 @@
 </head>
 <body>
 <div class="container">
-  <div class="logo">Google <span>Meet</span></div>
+  <div class="logo" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.5 87.5" width="36" height="36">
+      <path fill="#00832d" d="M49.5 44.3l8.8 9.7 11.8-8.3V30.9l-11.8 8.3z"/>
+      <path fill="#0066da" d="M0 55v8.3C0 66.4 2.6 69 5.7 69H23l4.8-9.2L23 50.5H5.7C2.6 50.5 0 53.1 0 55z"/>
+      <path fill="#e94235" d="M23 18.5l-4.8-9.2L23 0H5.7C2.6 0 0 2.6 0 5.7V14l4.8 4.5z"/>
+      <path fill="#2684fc" d="M23 0h18.7l-4.8 9.2-13.9 9.3H0V5.7C0 2.6 2.6 0 5.7 0z" opacity=".5"/>
+      <path fill="#00ac47" d="M23 69h18.7l-4.8-9.2-13.9-9.3H0v13.5C0 66.4 2.6 69 5.7 69z" opacity=".5"/>
+      <path fill="#00832d" d="M41.7 69l4.8-9.2 12.9.5 10.9 8.7z"/>
+      <path fill="#00ac47" d="M70.2 30.9l17.3-12.1V68.7l-17.3-12.1z"/>
+      <path fill="#ffba00" d="M41.7 18.5l-4.8 9.2-13.9 9.3V50.5l13.9 9.3 4.8 9.2h18.7V18.5z"/>
+    </svg>
+    <span style="font-size:22px;color:#e8eaed;">Google <span style="color:#8ab4f8;">Meet</span></span>
+  </div>
   <div class="subtitle">Ready to join? Enable your camera first.</div>
   <div class="preview-box">
     <video id="preview" autoplay muted playsinline></video>
