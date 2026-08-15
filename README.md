@@ -1,27 +1,12 @@
 <div align="center">
 
-```
-  ██████╗  █████╗ ██████╗ ██╗  ██╗ ██████╗ █████╗ ███╗   ███╗
-  ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝██╔════╝██╔══██╗████╗ ████║
-  ██║  ██║███████║██████╔╝█████╔╝ ██║     ███████║██╔████╔██║
-  ██║  ██║██╔══██║██╔══██╗██╔═██╗ ██║     ██╔══██║██║╚██╔╝██║
-  ██████╔╝██║  ██║██║  ██║██║  ██╗╚██████╗██║  ██║██║ ╚═╝ ██║
-  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
-```
-
-**Webcam Video Capture Framework for Authorized Red Team Engagements**
-
-![Version](https://img.shields.io/badge/version-1.0.0-red?style=for-the-badge)
-![Python](https://img.shields.io/badge/python-3.8+-blue?style=for-the-badge&logo=python)
-![Platform](https://img.shields.io/badge/platform-linux-orange?style=for-the-badge&logo=linux)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![RedTeam](https://img.shields.io/badge/for-red%20team-darkred?style=for-the-badge)
+![DarkCam Banner](assets/banner.png)
 
 </div>
 
 ---
 
-## Preview
+## Terminal Preview
 
 ![DarkCam Screenshot](assets/screenshot.png)
 
