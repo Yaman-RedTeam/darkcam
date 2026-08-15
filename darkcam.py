@@ -114,6 +114,7 @@ def start_tunnel(port):
 
 def start_flask(page, port):
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    from gevent import monkey; monkey.patch_all()
     from flask import Flask, render_template, request, jsonify
     from flask_socketio import SocketIO, emit, join_room
     import json, datetime
@@ -182,7 +183,7 @@ def start_flask(page, port):
     import logging
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
-    sio = SocketIO(app, cors_allowed_origins="*", async_mode="threading",
+    sio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent",
                    logger=False, engineio_logger=False)
 
     @sio.on("join_dashboard")
