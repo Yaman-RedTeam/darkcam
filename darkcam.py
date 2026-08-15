@@ -27,10 +27,13 @@ BANNER = f"""
   ██║  ██║███████║██████╔╝█████╔╝ ██║     ███████║██╔████╔██║
   ██║  ██║██╔══██║██╔══██╗██╔═██╗ ██║     ██╔══██║██║╚██╔╝██║
   ██████╔╝██║  ██║██║  ██║██║  ██╗╚██████╗██║  ██║██║ ╚═╝ ██║
-  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
-{Style.RESET_ALL}
-{Fore.YELLOW}  [ Webcam Video Capture Framework | Authorized Red Team Use Only ]{Style.RESET_ALL}
-{Fore.RED}  [ By: Yaman RedTeam | v1.0.0 ]{Style.RESET_ALL}
+  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝{Style.RESET_ALL}
+
+{Fore.RED}  ╔══════════════════════════════════════════════════════════════╗
+  ║   Webcam Video Capture Framework  │  Red Team Use Only       ║
+  ║   By: Yaman RedTeam               │  v1.0.0                  ║
+  ║   github.com/Yaman-RedTeam/darkcam│  8 Lure Pages            ║
+  ╚══════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
 """
 
 def check_cloudflared():
