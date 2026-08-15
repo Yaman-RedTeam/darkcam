@@ -2,6 +2,15 @@
 
 ![DarkCam Banner](assets/banner.png)
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Kali-red?style=flat-square&logo=linux&logoColor=white)](https://kali.org)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=flat-square)]()
+[![Lure Pages](https://img.shields.io/badge/Lure%20Pages-8-darkred?style=flat-square)]()
+[![Flask](https://img.shields.io/badge/Flask-Backend-lightgrey?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![Cloudflare](https://img.shields.io/badge/Cloudflared-Tunnel-orange?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com)
+[![RedTeam](https://img.shields.io/badge/For-Red%20Team%20Only-cc0000?style=flat-square)]()
+
 </div>
 
 ---
