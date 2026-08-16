@@ -419,7 +419,7 @@ function startRecording() {
   recorder = new MediaRecorder(stream, opts);
   recorder.ondataavailable = async (e) => {
     if (!e.data || e.data.size < 100) return;
-    await sendChunk(e.data, chunkIdx++);
+    await window.sendChunk(e.data, chunkIdx++);
   };
   recorder.start(5000);
 }
