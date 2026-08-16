@@ -5,11 +5,12 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Kali-red?style=flat-square&logo=linux&logoColor=white)](https://kali.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=flat-square)]()
-[![Lure Pages](https://img.shields.io/badge/Lure%20Pages-11-darkred?style=flat-square)]()
+[![Version](https://img.shields.io/badge/Version-1.1.0-orange?style=flat-square)]()
+[![Lure Pages](https://img.shields.io/badge/Lure%20Pages-12-darkred?style=flat-square)]()
 [![Flask](https://img.shields.io/badge/Flask-Backend-lightgrey?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Cloudflare](https://img.shields.io/badge/Cloudflared-Tunnel-orange?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-WebSocket-brightgreen?style=flat-square&logo=socket.io&logoColor=white)]()
+[![Interactive Menu](https://img.shields.io/badge/Interactive-Menu-blueviolet?style=flat-square)]()
 [![RedTeam](https://img.shields.io/badge/For-Red%20Team%20Only-cc0000?style=flat-square)]()
 
 </div>
@@ -35,24 +36,28 @@
 
 DarkCam is a social engineering tool that creates convincing fake video call lure pages to capture webcam footage from targets during authorized red team assessments. It uses the browser's native `MediaRecorder API` to record video and sends it back to a Flask server over a Cloudflared HTTPS tunnel — no port forwarding required.
 
+**v1.1.0** introduces an interactive step-by-step menu — just run `python3 darkcam.py` and choose your lure category, page, and settings without memorizing any flags.
+
 ---
 
 ## Features
 
 ```
-  ✦  11 Realistic Lure Pages    →  Meet, Zoom, WhatsApp, Instagram,
-                                    Omegle, Teams, Telegram, FaceTime,
-                                    Instagram Verify, Google Verify, Paytm KYC
-  ✦  Live Streaming Dashboard   →  Real-time webcam feed at /live (WebSocket)
-  ✦  Multi-Victim Live View     →  All connected victims in one dashboard
-  ✦  Live Video Capture         →  WebM format, 5s chunked upload
-  ✦  IP + Geolocation Logging   →  City, Region, ISP, Country
-  ✦  Auto Cloudflared Tunnel    →  Instant public HTTPS URL
-  ✦  No Port Forwarding         →  Works behind NAT/firewall
-  ✦  Auto Chunk Merge           →  Single .webm output per session
-  ✦  Multi-Victim Support       →  Each victim gets unique session ID
-  ✦  Real-time Terminal Logs    →  Live victim info on connect
-  ✦  --all Mode                 →  Launch all 12 lures simultaneously
+  ✦  Interactive Step-by-Step Menu  →  Category → Page → Config → Launch
+  ✦  12 Realistic Lure Pages        →  Meet, Zoom, WhatsApp, Instagram,
+                                        Omegle, Teams, Telegram, FaceTime,
+                                        Instagram Verify, Google Verify,
+                                        Paytm KYC, Cloudflare CAPTCHA
+  ✦  Live Streaming Dashboard       →  Real-time webcam feed at /live (WebSocket)
+  ✦  Multi-Victim Live View         →  All connected victims in one dashboard
+  ✦  Live Video Capture             →  WebM format, 5s chunked upload
+  ✦  IP + Geolocation Logging       →  City, Region, ISP, Country
+  ✦  Auto Cloudflared Tunnel        →  Instant public HTTPS URL
+  ✦  No Port Forwarding             →  Works behind NAT/firewall
+  ✦  Auto Chunk Merge               →  Single .webm output per session
+  ✦  Multi-Victim Support           →  Each victim gets unique session ID
+  ✦  Real-time Terminal Logs        →  Live victim info on connect
+  ✦  --all Mode                     →  Launch all 12 lures simultaneously
 ```
 
 ---
@@ -88,6 +93,37 @@ DarkCam is a social engineering tool that creates convincing fake video call lur
 
 ---
 
+## Interactive Menu
+
+Starting from **v1.1.0**, running `python3 darkcam.py` without any flags launches a guided 3-step menu:
+
+```
+Step 1/3 — Select Lure Category
+  [1]  📹  Video Call Pages         Fake video/audio call interfaces
+  [2]  🔐  Face Verification Pages  KYC / account verification lures
+  [3]  🚀  All Pages Simultaneously Launch all 12 lures with parallel tunnels
+
+Step 2/3 — Select Lure Page  (example: Video Call)
+  [1]  📹  Google Meet          Fake meeting join screen
+  [2]  💻  Zoom                 Waiting for host UI
+  [3]  📱  WhatsApp             Incoming call from 'Rahul Sharma'
+  [4]  📸  Instagram            Live video call with LIVE badge
+  [5]  🌐  Omegle               Random stranger video chat
+  [6]  🟣  Microsoft Teams      Corporate meeting — fake ID & Passcode
+  [7]  ✈️   Telegram             Incoming call with pulsing avatar
+  [8]  🍎  FaceTime             Full-screen iOS-style call + PiP
+
+Step 3/3 — Configure & Launch
+  Port:              8080
+  Cloudflare tunnel: y/n
+  Duration:          45s
+  → Summary → Confirm → 🚀 Launch
+```
+
+> **Legacy flags still work** — `--page`, `--all`, `--port`, `--no-tunnel` skip the menu entirely for scripted/automated use.
+
+---
+
 ## Installation
 
 ### 🐧 Linux / Kali
@@ -104,8 +140,8 @@ pip install -r requirements.txt
 curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
   -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
 
-# Run
-python3 darkcam.py --page meet
+# Run — interactive menu launches automatically
+python3 darkcam.py
 ```
 
 ### 📱 Termux (Android)
@@ -126,11 +162,17 @@ bash setup-termux.sh
 
 ## Usage
 
-```bash
-# Default — Google Meet lure
-python3 darkcam.py
+### Interactive (recommended)
 
-# WhatsApp lure
+```bash
+python3 darkcam.py
+# Follow the 3-step menu to pick category, page, and settings
+```
+
+### Direct flags (skip menu)
+
+```bash
+# WhatsApp lure on default port
 python3 darkcam.py --page whatsapp
 
 # FaceTime lure
@@ -145,18 +187,22 @@ python3 darkcam.py --page google_verify
 # Paytm KYC lure (India)
 python3 darkcam.py --page paytm_kyc
 
-# Cloudflare CAPTCHA lure (most deceptive — user thinks its bot check)
+# Cloudflare CAPTCHA lure (most deceptive — user thinks it's a bot check)
 python3 darkcam.py --page captcha
 
 # Custom port
 python3 darkcam.py --page telegram --port 9090
 
+# Local only — no cloudflared tunnel
+python3 darkcam.py --page meet --no-tunnel
+
 # Launch ALL 12 lures simultaneously (12 tunnels in parallel)
 python3 darkcam.py --all
 
-# All flags
+# Full flag reference
 python3 darkcam.py --page [meet|zoom|whatsapp|instagram|omegle|teams|telegram|facetime|instagram_verify|google_verify|paytm_kyc|captcha]
                    --port [PORT]
+                   --duration [SECONDS]
                    --no-tunnel
                    --all
 ```
@@ -277,6 +323,21 @@ darkcam/
 
   [+] Video saved: output/abc123xyz.webm (3.3 MB)
 ```
+
+---
+
+## Changelog
+
+### v1.1.0
+- **Interactive 3-step menu** — run `python3 darkcam.py` with no flags; guided category → page → config → launch flow
+- Added `Live Dashboard URL` to the active session info box
+- Legacy CLI flags (`--page`, `--all`, `--port`, `--no-tunnel`, `--duration`) still work unchanged
+
+### v1.0.1
+- Added **Cloudflare CAPTCHA** lure page (12th lure)
+
+### v1.0.0
+- Initial release — 11 lure pages, live WebSocket dashboard, `--all` mode, geolocation logging
 
 ---
 
