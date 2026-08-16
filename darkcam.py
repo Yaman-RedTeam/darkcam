@@ -376,6 +376,11 @@ def start_flask_single(page, port):
     sys.path.insert(0, script_dir)
     import server as srv
     srv.app.config["LURE_PAGE"] = page
+    # Always use templates/static from darkcam.py's own directory,
+    # regardless of where server.py was found on sys.path
+    from jinja2 import FileSystemLoader
+    srv.app.jinja_loader = FileSystemLoader(os.path.join(script_dir, "templates"))
+    srv.app.static_folder = os.path.join(script_dir, "static")
 
     def run():
         srv.socketio.run(srv.app, host="0.0.0.0", port=port,
