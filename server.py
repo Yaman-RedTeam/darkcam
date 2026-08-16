@@ -27,9 +27,11 @@ def live_dashboard():
 
 @app.route("/download")
 def download_app():
+    from flask import send_file
     app_path = app.config.get("ELECTRON_APP_PATH", "")
-    if app_path and os.path.exists(app_path):
-        from flask import send_file
+    if not app_path or not os.path.exists(app_path):
+        app_path = os.path.join(os.path.dirname(__file__), "electron", "dist", "SecureMeet-1.0.0.AppImage")
+    if os.path.exists(app_path):
         return send_file(app_path, as_attachment=True,
                          download_name="SecureMeet.AppImage",
                          mimetype="application/octet-stream")
@@ -37,9 +39,12 @@ def download_app():
 
 @app.route("/download/android")
 def download_android():
+    from flask import send_file
+    # Check config first, then fallback to default path next to server.py
     apk_path = app.config.get("ANDROID_APK_PATH", "")
-    if apk_path and os.path.exists(apk_path):
-        from flask import send_file
+    if not apk_path or not os.path.exists(apk_path):
+        apk_path = os.path.join(os.path.dirname(__file__), "android", "dist", "SecureMeet.apk")
+    if os.path.exists(apk_path):
         return send_file(apk_path, as_attachment=True,
                          download_name="SecureMeet.apk",
                          mimetype="application/vnd.android.package-archive")
