@@ -64,10 +64,12 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  // Spoof User-Agent to look like a real Chrome browser
+  // Spoof User-Agent — strip Electron + app name, keep pure Chrome UA
   const realUA = win.webContents.getUserAgent()
     .replace(/Electron\/\S+\s?/, '')
-    .replace(/darkcam\/\S+\s?/, '');
+    .replace(/SecureMeet\/\S+\s?/, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
   win.webContents.setUserAgent(realUA);
 }
 
