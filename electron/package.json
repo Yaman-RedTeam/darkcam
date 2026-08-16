@@ -6,42 +6,74 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win":   "electron-builder --win   --x64",
+    "build:win": "electron-builder --win   --x64",
     "build:linux": "electron-builder --linux --x64",
-    "build:mac":   "electron-builder --mac"
+    "build:mac": "electron-builder --mac"
   },
   "devDependencies": {
-    "electron":         "^28.3.3",
+    "electron": "^28.3.3",
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId":       "com.securemeet.app",
+    "appId": "com.securemeet.app",
     "productName": "SecureMeet",
-    "copyright":   "Copyright © 2026 SecureMeet Inc.",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "preload.js", "config.json", "build/**"],
+    "copyright": "Copyright © 2026 SecureMeet Inc.",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.json",
+      "build/**"
+    ],
     "win": {
-      "target":      [{ "target": "nsis", "arch": ["x64"] }],
-      "icon":        "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
       "requestedExecutionLevel": "asInvoker"
     },
     "linux": {
-      "target":   [{ "target": "AppImage", "arch": ["x64"] }],
-      "icon":     "build/icon.png",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
       "category": "Network"
     },
     "mac": {
-      "target":   [{ "target": "dmg", "arch": ["x64", "arm64"] }],
-      "icon":     "build/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
       "category": "public.app-category.video"
     },
     "nsis": {
-      "oneClick":          true,
-      "installerIcon":     "build/icon.ico",
+      "oneClick": true,
+      "installerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName":      "SecureMeet"
+      "shortcutName": "SecureMeet"
     }
+  },
+  "allowScripts": {
+    "electron@28.3.3": true
   }
 }
